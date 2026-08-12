@@ -1,5 +1,6 @@
 name: Refresh fast Top 10 cache
 
+# Free cache refresh: the browser never scans dozens of stocks on page load.
 on:
   workflow_dispatch:
   schedule:
@@ -28,66 +29,42 @@ jobs:
 
           symbols = ['NVDA','MSFT','AAPL','AMZN','GOOGL','META','AVGO','AMD','MU','TSM','ASML','SAP','ORCL','NFLX','PLTR','TSLA','QCOM','CSCO','JPM','V','MA','COST','LLY','NVO','CRM','ADBE','PANW','CRWD','ANET','GE','CAT','SHOP','UBER']
 
-          def avg(a):
-              return sum(a) / len(a) if a else 0
-
+          def avg(a): return sum(a) / len(a) if a else 0
           def rsi(a):
-              if len(a) < 15:
-                  return 50
-              g = l = 0
-              for i in range(len(a)-14, len(a)):
-                  d = a[i] - a[i-1]
-                  g += max(d, 0)
-                  l += max(-d, 0)
-              return 100 - 100/(1 + g/l) if l else 100
-
+              if len(a) < 15: return 50
+              g=l=0
+              for i in range(len(a)-14,len(a)):
+                  d=a[i]-a[i-1]; g+=max(d,0); l+=max(-d,0)
+              return 100-100/(1+g/l) if l else 100
           def score(close):
-              n = close[-1]
-              a20 = avg(close[-20:])
-              a50 = avg(close[-50:])
-              a200 = avg(close[-200:])
-              rr = rsi(close)
-              s = 50 + (8 if n > a20 else -8) + (10 if n > a50 else -10) + (18 if n > a200 else -18) + (8 if rr < 30 else -8 if rr > 70 else 5)
-              return max(0, min(100, s)), n, a20, a50, a200, rr
-
+              n=close[-1]; a20=avg(close[-20:]); a50=avg(close[-50:]); a200=avg(close[-200:]); rr=rsi(close)
+              s=50+(8 if n>a20 else -8)+(10 if n>a50 else -10)+(18 if n>a200 else -18)+(8 if rr<30 else -8 if rr>70 else 5)
+              return max(0,min(100,s)),n,rr
           def fetch(sym):
-              url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + urllib.parse.quote(sym) + '?range=1y&interval=1d&events=history'
-              req = urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0'})
               try:
-                  with urllib.request.urlopen(req, timeout=8) as r:
-                      z = json.load(r).get('chart',{}).get('result',[None])[0]
-                  if not z:
-                      return None
-                  close = [x for x in z.get('indicators',{}).get('quote',[{}])[0].get('close',[]) if isinstance(x,(int,float)) and math.isfinite(x)]
-                  if len(close) < 200:
-                      return None
-                  s,n,a20,a50,a200,rr = score(close)
-                  meta = z.get('meta',{})
-                  return {'name': meta.get('longName') or meta.get('shortName') or sym, 'symbol': sym, 'score': round(s,2), 'price': n, 'rsi': round(rr,1)}
-              except Exception:
-                  return None
-
-          out = []
+                  url='https://query1.finance.yahoo.com/v8/finance/chart/'+urllib.parse.quote(sym)+'?range=1y&interval=1d&events=history'
+                  req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
+                  with urllib.request.urlopen(req,timeout=8) as r: z=json.load(r).get('chart',{}).get('result',[None])[0]
+                  if not z:return None
+                  close=[x for x in z.get('indicators',{}).get('quote',[{}])[0].get('close',[]) if isinstance(x,(int,float)) and math.isfinite(x)]
+                  if len(close)<200:return None
+                  s,n,rr=score(close); meta=z.get('meta',{})
+                  return {'name':meta.get('longName') or meta.get('shortName') or sym,'symbol':sym,'score':round(s,2),'price':n,'rsi':round(rr,1)}
+              except Exception:return None
+          out=[]
           with ThreadPoolExecutor(max_workers=8) as ex:
-              futures = [ex.submit(fetch, s) for s in symbols]
-              for f in as_completed(futures):
-                  x = f.result()
-                  if x and x['score'] >= 95:
-                      out.append(x)
-          out.sort(key=lambda x: (-x['score'], x['symbol']))
-          data = {'generatedAt': datetime.now(timezone.utc).isoformat(), 'criteria': '>=95/100', 'items': out[:10]}
-          Path('top10.json').write_text(json.dumps(data, ensure_ascii=False, separators=(',',':')), encoding='utf-8')
+              for f in as_completed([ex.submit(fetch,s) for s in symbols]):
+                  x=f.result()
+                  if x and x['score']>=95: out.append(x)
+          out.sort(key=lambda x:(-x['score'],x['symbol']))
+          Path('top10.json').write_text(json.dumps({'generatedAt':datetime.now(timezone.utc).isoformat(),'criteria':'>=95/100','items':out[:10]},ensure_ascii=False,separators=(',',':')),encoding='utf-8')
 
-          p = Path('index.html')
-          s = p.read_text(encoding='utf-8')
-          new_scan = r'''async function scan(){if(topBusy)return;topBusy=true;topgrid.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;padding:12px">Top 10 wird aus dem kostenlosen Schnell-Cache geladen …</div>';try{const r=await fetch('./top10.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('Top-10-Cache noch nicht verfügbar');const j=await r.json(),out=(j.items||[]).filter(x=>Number(x.score)>=95).slice(0,10);localStorage.setItem('aktpro_top10_cache',JSON.stringify(j));topgrid.innerHTML=out.map((x,i)=>`<div class="topcard" data-symbol="${x.symbol}" data-name="${String(x.name||x.symbol).replace(/"/g,'')}"><div class="rank">#${i+1}</div><div class="name">${x.name||x.symbol}</div><div class="sym">${x.symbol}</div><div class="score">${Math.round(x.score)}/100</div><div class="buy">KAUFEN</div></div>`).join('')||'<div class="muted" style="grid-column:1/-1;text-align:center;padding:12px">Aktuell keine Treffer ≥95/100.</div>';topdate.textContent=j.generatedAt?new Date(j.generatedAt).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''}catch(e){try{const j=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null'),out=(j?.items||[]).filter(x=>Number(x.score)>=95).slice(0,10);if(out.length){topgrid.innerHTML=out.map((x,i)=>`<div class="topcard" data-symbol="${x.symbol}" data-name="${String(x.name||x.symbol).replace(/"/g,'')}"><div class="rank">#${i+1}</div><div class="name">${x.name||x.symbol}</div><div class="sym">${x.symbol}</div><div class="score">${Math.round(x.score)}/100</div><div class="buy">KAUFEN</div></div>`).join('');topdate.textContent='letzter gespeicherter Stand'}else{topgrid.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;padding:12px">Top 10 wird gerade kostenlos im Hintergrund vorbereitet. Bitte Seite kurz neu laden.</div>'}}catch(_){topgrid.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;padding:12px">Top 10 wird gerade vorbereitet. Bitte Seite kurz neu laden.</div>'}}finally{topBusy=false;syncButtons()}}'''
-          pattern = r'async function scan\(\)\{.*?\}\nform\.onsubmit='
-          replacement = new_scan + '\nform.onsubmit='
-          s2, n = re.subn(pattern, replacement, s, count=1, flags=re.S)
-          if n:
-              s = s2
-          s = s.replace('🏆 Top 20 Kaufempfehlungen', '🏆 Top 10 Kaufempfehlungen', 1)
-          p.write_text(s, encoding='utf-8')
+          p=Path('index.html'); s=p.read_text(encoding='utf-8')
+          new_scan=r'''async function scan(){if(topBusy)return;topBusy=true;topgrid.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;padding:12px">Top 10 wird aus dem kostenlosen Schnell-Cache geladen …</div>';try{const r=await fetch('./top10.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('Top-10-Cache noch nicht verfügbar');const j=await r.json(),out=(j.items||[]).filter(x=>Number(x.score)>=95).slice(0,10);localStorage.setItem('aktpro_top10_cache',JSON.stringify(j));topgrid.innerHTML=out.map((x,i)=>`<div class="topcard" data-symbol="${x.symbol}" data-name="${String(x.name||x.symbol).replace(/"/g,'')}"><div class="rank">#${i+1}</div><div class="name">${x.name||x.symbol}</div><div class="sym">${x.symbol}</div><div class="score">${Math.round(x.score)}/100</div><div class="buy">KAUFEN</div></div>`).join('')||'<div class="muted" style="grid-column:1/-1;text-align:center;padding:12px">Aktuell keine Treffer ≥95/100.</div>';topdate.textContent=j.generatedAt?new Date(j.generatedAt).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''}catch(e){try{const j=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null'),out=(j?.items||[]).filter(x=>Number(x.score)>=95).slice(0,10);if(out.length){topgrid.innerHTML=out.map((x,i)=>`<div class="topcard" data-symbol="${x.symbol}" data-name="${String(x.name||x.symbol).replace(/"/g,'')}"><div class="rank">#${i+1}</div><div class="name">${x.name||x.symbol}</div><div class="sym">${x.symbol}</div><div class="score">${Math.round(x.score)}/100</div><div class="buy">KAUFEN</div></div>`).join('');topdate.textContent='letzter gespeicherter Stand'}else{topgrid.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;padding:12px">Top 10 wird gerade kostenlos im Hintergrund vorbereitet. Bitte Seite kurz neu laden.</div>'}}catch(_){topgrid.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;padding:12px">Top 10 wird gerade vorbereitet. Bitte Seite kurz neu laden.</div>'}}finally{topBusy=false;syncButtons()}}'''
+          s2,n=re.subn(r'async function scan\(\)\{.*?\}\nform\.onsubmit=',new_scan+'\nform.onsubmit=',s,count=1,flags=re.S)
+          if n:s=s2
+          s=s.replace('🏆 Top 20 Kaufempfehlungen','🏆 Top 10 Kaufempfehlungen',1)
+          p.write_text(s,encoding='utf-8')
       - name: Commit cache and optimization
         run: |
           git config user.name "github-actions[bot]"
