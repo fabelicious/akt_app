@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AKT Pro – Globale Aktienanalyse per WKN</title>
+<title>AKT-Pro by fab – Globale Aktienanalyse per WKN</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
-:root{font-family:system-ui,sans-serif;color:#172033;background:#f3f6fa}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1200px;margin:auto;padding:20px 15px}.hero{background:#111827;color:#fff;border-radius:20px;padding:24px}.hero h1{margin:0 0 5px}.hero p{color:#cbd5e1}.search-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.input-wrap{display:flex;flex-direction:column;gap:5px}.input-wrap label{font-size:11px;color:#94a3b8;font-weight:700}.search input{width:100%;padding:13px;border-radius:10px;border:1px solid #475569;background:#1f2937;color:#fff;font-size:16px}.search-actions{display:flex;justify-content:flex-end;margin-top:8px}.btn,.tab,.action-btn{padding:11px 15px;border:0;border-radius:10px;font-weight:700;cursor:pointer}.btn{background:#38bdf8}.btn:disabled{opacity:.65;cursor:wait}.hint,.foot{font-size:12px;color:#94a3b8;margin-top:10px}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:13px 0}.tab{background:#fff;border:1px solid #d1d5db}.tab.active{background:#111827;color:#fff}.compare-card{background:#fff;border:1px solid #e5e7eb;border-radius:15px;padding:15px;margin-top:11px}.compare-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.compare-title{font-size:18px;font-weight:850}.compare-sub{font-size:12px;color:#64748b;margin-top:3px}.compare-legend{display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:#475569}.legend-item{padding:5px 8px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:999px}.compare-prices{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.price-card{background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:12px}.price-card .name{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.price-card .symbol{font-size:11px;color:#64748b}.price-card .actual{font-size:23px;font-weight:900;margin-top:5px}.price-card .change{font-size:12px;font-weight:800}.change.up{color:#15803d}.change.down{color:#b91c1c}.chart{height:400px;background:#fff;border:1px solid #e5e7eb;border-radius:15px;margin-top:11px;padding:12px}.small{height:240px}.section{margin-top:11px}.notice{padding:12px;background:#f8fafc;border-radius:10px;color:#475569}.error{display:none;margin-top:10px;background:#fee2e2;color:#991b1b;padding:12px;border-radius:10px}.progress-wrap{display:none;margin-top:14px}.progress-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#cbd5e1;margin-bottom:7px}.progress-track{height:12px;background:#273449;border-radius:999px;overflow:hidden;border:1px solid #475569}.progress-fill{height:100%;width:0%;background:#38bdf8;border-radius:999px;transition:width .35s ease}.progress-pct{font-weight:800;color:#fff}.progress-dots{display:flex;justify-content:space-between;margin-top:7px;font-size:10px;color:#64748b}.progress-dots span.active{color:#38bdf8;font-weight:700}.group-controls{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:15px 0 8px}.group-title{font-size:18px;font-weight:850}.group-actions{display:flex;gap:7px}.action-btn{background:#fff;border:1px solid #d1d5db;font-size:12px}.stock-group{background:#fff;border:1px solid #e5e7eb;border-radius:15px;margin-top:10px;overflow:hidden}.stock-group summary{list-style:none;cursor:pointer;padding:15px 17px;display:flex;align-items:center;justify-content:space-between;gap:12px}.stock-group summary::-webkit-details-marker{display:none}.stock-group summary:before{content:'›';font-size:22px;line-height:1;transform:rotate(0deg);transition:transform .2s}.stock-group[open] summary:before{transform:rotate(90deg)}.summary-main{display:flex;align-items:center;gap:10px;min-width:0}.summary-name{font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.summary-symbol{font-size:12px;color:#64748b}.summary-result{font-size:12px;font-weight:800;white-space:nowrap}.summary-result.buy{color:#15803d}.summary-result.watch{color:#a16207}.summary-result.no{color:#b91c1c}.stock-body{padding:0 15px 15px;border-top:1px solid #eef2f7}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-top:15px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:15px;padding:15px}.stock-body .card{background:#fbfdff}.wide{grid-column:span 2}.label{font-size:11px;text-transform:uppercase;color:#64748b}.value{font-size:21px;font-weight:850;margin-top:5px}.sub{font-size:13px;color:#64748b}.score{font-size:30px;font-weight:900}.meter{height:9px;background:#e5e7eb;border-radius:9px;margin-top:10px}.meter span{display:block;height:100%;width:50%;background:#38bdf8;border-radius:9px}.chart-title{font-size:13px;font-weight:800;margin:2px 0 7px}.stock-charts{display:grid;grid-template-columns:1fr;gap:11px;margin-top:11px}.why{margin-top:11px}.why ul{margin-bottom:0}
-@media(max-width:850px){.grid{grid-template-columns:1fr 1fr}.wide{grid-column:span 2}.search-grid{grid-template-columns:1fr}.search-actions{justify-content:stretch}.search-actions .btn{width:100%}.compare-prices{grid-template-columns:1fr}}@media(max-width:550px){.grid{grid-template-columns:1fr}.wide{grid-column:span 1}.progress-dots span:nth-child(even){display:none}.compare-head,.group-controls{flex-direction:column;align-items:stretch}.group-actions{justify-content:stretch}.action-btn{flex:1}.stock-group summary{align-items:flex-start}.summary-result{white-space:normal;text-align:right}}
+:root{font-family:system-ui,sans-serif;color:#172033;background:#f3f6fa}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1400px;margin:auto;padding:20px 15px}.hero{background:#111827;color:#fff;border-radius:20px;padding:24px}.hero h1{margin:0 0 5px}.hero p{color:#cbd5e1}.search-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.input-wrap{display:flex;flex-direction:column;gap:5px}.input-wrap label{font-size:11px;color:#94a3b8;font-weight:700}.search input{width:100%;padding:13px;border-radius:10px;border:1px solid #475569;background:#1f2937;color:#fff;font-size:16px}.search-actions{display:flex;justify-content:flex-end;margin-top:8px}.btn,.tab,.action-btn{padding:11px 15px;border:0;border-radius:10px;font-weight:700;cursor:pointer}.btn{background:#38bdf8}.btn:disabled{opacity:.65;cursor:wait}.hint,.foot{font-size:12px;color:#94a3b8;margin-top:10px}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:13px 0}.tab{background:#fff;border:1px solid #d1d5db}.tab.active{background:#111827;color:#fff}.section{margin-top:11px}.notice{padding:12px;background:#f8fafc;border-radius:10px;color:#475569}.error{display:none;margin-top:10px;background:#fee2e2;color:#991b1b;padding:12px;border-radius:10px}.progress-wrap{display:none;margin-top:14px}.progress-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#cbd5e1;margin-bottom:7px}.progress-track{height:12px;background:#273449;border-radius:999px;overflow:hidden;border:1px solid #475569}.progress-fill{height:100%;width:0%;background:#38bdf8;border-radius:999px;transition:width .35s ease}.progress-pct{font-weight:800;color:#fff}.progress-dots{display:flex;justify-content:space-between;margin-top:7px;font-size:10px;color:#64748b}.progress-dots span.active{color:#38bdf8;font-weight:700}.group-controls{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:15px 0 8px}.group-title{font-size:18px;font-weight:850}.group-actions{display:flex;gap:7px}.action-btn{background:#fff;border:1px solid #d1d5db;font-size:12px}.individual-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}.stock-group{background:#fff;border:1px solid #e5e7eb;border-radius:15px;overflow:hidden;min-width:0}.stock-group summary{list-style:none;cursor:pointer;padding:15px 17px;display:flex;align-items:center;justify-content:space-between;gap:12px}.stock-group summary::-webkit-details-marker{display:none}.stock-group summary:before{content:'›';font-size:22px;line-height:1;transform:rotate(0deg);transition:transform .2s}.stock-group[open] summary:before{transform:rotate(90deg)}.summary-main{display:flex;align-items:center;gap:10px;min-width:0}.summary-name{font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.summary-symbol{font-size:12px;color:#64748b}.summary-result{font-size:12px;font-weight:800;white-space:nowrap}.summary-result.buy{color:#15803d}.summary-result.watch{color:#a16207}.summary-result.no{color:#b91c1c}.stock-body{padding:0 12px 12px;border-top:1px solid #eef2f7}.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;min-width:0}.stock-body .card{background:#fbfdff}.wide{grid-column:span 2}.label{font-size:10px;text-transform:uppercase;color:#64748b}.value{font-size:18px;font-weight:850;margin-top:4px;overflow-wrap:anywhere}.sub{font-size:12px;color:#64748b;overflow-wrap:anywhere}.score{font-size:27px;font-weight:900}.meter{height:8px;background:#e5e7eb;border-radius:9px;margin-top:9px}.meter span{display:block;height:100%;width:50%;background:#38bdf8;border-radius:9px}.chart-title{font-size:12px;font-weight:800;margin:2px 0 7px}.chart{height:270px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:10px}.small{height:210px}.stock-charts{display:grid;grid-template-columns:1fr;gap:9px;margin-top:10px}.why{margin-top:9px}.why ul{margin-bottom:0;padding-left:18px}.fundamentals{margin-top:12px}
+@media(max-width:1100px){.individual-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:750px){.search-grid{grid-template-columns:1fr}.search-actions{justify-content:stretch}.search-actions .btn{width:100%}.individual-grid{grid-template-columns:1fr}.progress-dots span:nth-child(even){display:none}.group-controls{flex-direction:column;align-items:stretch}.group-actions{justify-content:stretch}.action-btn{flex:1}}@media(max-width:450px){.grid{grid-template-columns:1fr}.wide{grid-column:span 1}.summary-result{white-space:normal;text-align:right}.stock-group summary{align-items:flex-start}}
 </style>
 </head>
 <body>
 <div class="wrap">
 <section class="hero">
-<h1>📈 AKT Pro</h1>
+<h1>📈 AKT-Pro by fab</h1>
 <p>Bis zu drei Aktien weltweit über WKN suchen und technisch analysieren.</p>
 <form class="search" id="form">
   <div class="search-grid">
@@ -27,7 +27,7 @@
 <div class="progress-wrap" id="progressWrap">
   <div class="progress-head"><span id="progressStatus">Analyse wird vorbereitet …</span><span class="progress-pct" id="progressPct">0 %</span></div>
   <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-  <div class="progress-dots"><span data-step="1">Eingaben prüfen</span><span data-step="2">Wertpapiere auflösen</span><span data-step="3">Symbole ermitteln</span><span data-step="4">Kursdaten laden</span><span data-step="5">Analyse berechnen</span><span data-step="6">Vergleich anzeigen</span></div>
+  <div class="progress-dots"><span data-step="1">Eingaben prüfen</span><span data-step="2">Wertpapiere auflösen</span><span data-step="3">Symbole ermitteln</span><span data-step="4">Kursdaten laden</span><span data-step="5">Analyse berechnen</span><span data-step="6">Einzelanalysen anzeigen</span></div>
 </div>
 <div id="load" class="hint" style="display:none"></div>
 <div id="err" class="error"></div>
@@ -36,176 +36,45 @@
 <div id="app" style="display:none">
 <div class="tabs"><button class="tab active" data-d="30">1M</button><button class="tab" data-d="90">3M</button><button class="tab" data-d="180">6M</button><button class="tab" data-d="365">1J</button><button class="tab" data-d="1825">5J</button></div>
 
-<section class="compare-card">
-  <div class="compare-head">
-    <div><div class="compare-title">Kursvergleich – IST-Werte</div><div class="compare-sub">Der Chart zeigt die tatsächlichen Kurse der Aktien im gewählten Zeitraum – ohne Normierung und ohne Startwert 100.</div></div>
-    <div class="compare-legend" id="compareLegend"></div>
-  </div>
-  <div class="compare-prices" id="comparePrices"></div>
-  <div class="chart"><canvas id="compareChart"></canvas></div>
-</section>
-
 <div class="group-controls">
   <div class="group-title">Einzelanalysen</div>
   <div class="group-actions"><button type="button" class="action-btn" id="openAll">Alle öffnen</button><button type="button" class="action-btn" id="closeAll">Alle schließen</button></div>
 </div>
-<div id="individuals"></div>
+<div id="individuals" class="individual-grid"></div>
 
-<section class="card section"><b>Fundamentaldaten</b><div class="notice">Kostenlose Kursdaten aktiv. Die technische Analyse funktioniert weltweit, soweit das Wertpapier bei OpenFIGI und Yahoo Finance auflösbar ist. Fundamentalkennzahlen werden separat ergänzt.</div></section>
+<section class="card fundamentals"><b>Fundamentaldaten</b><div class="notice">Kostenlose Kursdaten aktiv. Die technische Analyse funktioniert weltweit, soweit das Wertpapier bei OpenFIGI und Yahoo Finance auflösbar ist. Fundamentalkennzahlen werden separat ergänzt.</div></section>
 </div>
 <div class="foot">Globale Aktien · Eingabe per WKN · WKN-Auflösung über OpenFIGI · Kursdaten via Yahoo Finance · Regelbasiertes Modell, keine Anlageberatung.</div>
 </div>
 <script>
-let stocks=[],days=30,compareChart=null;
+let stocks=[],days=30;
 const $=id=>document.getElementById(id),fmt=x=>Number(x).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
-
-function setProgress(percent,status,step){
- $('progressFill').style.width=percent+'%';$('progressPct').textContent=Math.round(percent)+' %';$('progressStatus').textContent=status;
- document.querySelectorAll('.progress-dots span').forEach(x=>x.classList.toggle('active',+x.dataset.step<=step));
-}
-function startProgress(){ $('progressWrap').style.display='block';setProgress(5,'Eingaben werden geprüft …',1); }
-function finishProgress(){ setProgress(100,'Analyse abgeschlossen – Vergleich und Einzelanalysen werden angezeigt.',6); }
-
-async function get(url){
- const proxies=[u=>'https://corsproxy.io/?url='+encodeURIComponent(u),u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)];let last='';
- for(const make of proxies){try{const r=await fetch(make(url),{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const t=await r.text();if(!t.trim())throw Error('leere Antwort');return JSON.parse(t)}catch(e){last=e.message}}
- throw Error(last||'Datenabruf fehlgeschlagen')
-}
-
-async function chartData(symbol,onProgress){
- if(onProgress)onProgress();
- const end=Math.floor(Date.now()/1000),start=end-60*60*24*1900;
- const u='https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(symbol)+'?period1='+start+'&period2='+end+'&interval=1d&events=history&includeAdjustedClose=true';
- const z=(await get(u)).chart?.result?.[0];if(!z)throw Error('keine Kursdaten');
- const q=z.indicators.quote[0],a=z.indicators.adjclose?.[0]?.adjclose;
- const data=z.timestamp.map((t,i)=>({d:new Date(t*1000),c:a?.[i]??q.close[i]})).filter(x=>Number.isFinite(x.c));
- if(data.length<200)throw Error('zu wenig Historie');return{symbol,data,meta:z.meta||{}}
-}
+function setProgress(percent,status,step){$('progressFill').style.width=percent+'%';$('progressPct').textContent=Math.round(percent)+' %';$('progressStatus').textContent=status;document.querySelectorAll('.progress-dots span').forEach(x=>x.classList.toggle('active',+x.dataset.step<=step))}
+function startProgress(){$('progressWrap').style.display='block';setProgress(5,'Eingaben werden geprüft …',1)}
+function finishProgress(){setProgress(100,'Analyse abgeschlossen – Einzelanalysen werden angezeigt.',6)}
+async function get(url){const proxies=[u=>'https://corsproxy.io/?url='+encodeURIComponent(u),u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)];let last='';for(const make of proxies){try{const r=await fetch(make(url),{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const t=await r.text();if(!t.trim())throw Error('leere Antwort');return JSON.parse(t)}catch(e){last=e.message}}throw Error(last||'Datenabruf fehlgeschlagen')}
+async function chartData(symbol,onProgress){if(onProgress)onProgress();const end=Math.floor(Date.now()/1000),start=end-60*60*24*1900,u='https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(symbol)+'?period1='+start+'&period2='+end+'&interval=1d&events=history&includeAdjustedClose=true',z=(await get(u)).chart?.result?.[0];if(!z)throw Error('keine Kursdaten');const q=z.indicators.quote[0],a=z.indicators.adjclose?.[0]?.adjclose,data=z.timestamp.map((t,i)=>({d:new Date(t*1000),c:a?.[i]??q.close[i]})).filter(x=>Number.isFinite(x.c));if(data.length<200)throw Error('zu wenig Historie');return{symbol,data,meta:z.meta||{}}}
 async function yahooSearch(q){return(await get('https://query1.finance.yahoo.com/v1/finance/search?q='+encodeURIComponent(q)+'&quotesCount=30&newsCount=0')).quotes||[]}
 const yahooSuffixes={US:[''],NYSE:[''],NASDAQ:[''],AMEX:[''],ARCA:[''],OTC:[''],GY:['.DE','.F'],GF:['.F','.DE'],GR:['.DE','.F'],GA:['.DE','.F'],GB:['.DE','.F'],GM:['.DE','.F'],GI:['.DE','.F'],GZ:['.DE','.F'],GQ:['.DE','.F'],LN:['.L'],LE:['.L'],LO:['.L'],LX:['.L'],PA:['.PA'],FP:['.PA'],AS:['.AS'],NA:['.AS'],BR:['.BR'],BB:['.BR'],MI:['.MI'],IM:['.MI'],MC:['.MC'],SM:['.MC'],SW:['.SW'],VX:['.SW'],VI:['.VI'],HE:['.HE'],ST:['.ST'],CO:['.CO'],DC:['.CO'],OL:['.OL'],NO:['.OL'],LS:['.LS'],AT:['.AT'],TA:['.TA'],HK:['.HK'],JP:['.T'],T:['.T'],KS:['.KS'],KQ:['.KQ'],NS:['.NS'],BO:['.BO'],AU:['.AX'],AX:['.AX'],SI:['.SI'],TW:['.TW'],TWO:['.TWO'],SA:['.SA'],BZ:['.SA'],MX:['.MX'],JO:['.JO'],JK:['.JK'],KL:['.KL'],BK:['.BK'],NZ:['.NZ'],IS:['.IS'],SR:['.SR'],SS:['.SS'],SZ:['.SZ'],CN:['.SS','.SZ']};
 function isEquity(x){const s=((x.marketSector||'')+' '+(x.securityType||'')+' '+(x.securityType2||'')).toLowerCase();return s.includes('equity')||s.includes('common stock')||s.includes('depositary receipt')||s.includes('adr')||s.includes('reit')}
 function suffixList(exch){return yahooSuffixes[(exch||'').toUpperCase()]||['.DE','.F','']}
-function uniq(a){return [...new Set(a.filter(Boolean))]}
-async function trySymbols(symbols,name,onProgress){for(const s of uniq(symbols)){try{const p=await chartData(s,onProgress);const m=p.meta||{};return{name:name||m.longName||m.shortName||m.displayName||s,symbol:s,data:p.data,meta:m}}catch(e){}}return null}
-
-async function resolveFromOpenFigi(w,onProgress){
- const u='https://api.openfigi.com/v3/mapping/ID_WERTPAPIER/'+encodeURIComponent(w),r=await get(u);const rows=Array.isArray(r)?(r[0]?.data||[]):(r.data||[]);const equities=rows.filter(isEquity);if(!equities.length)return null;
- for(const e of equities){const ticker=(e.ticker||'').trim();if(!ticker)continue;const direct=uniq([ticker,...suffixList(e.exchCode).map(s=>ticker+s),ticker.replace(/\s+/g,'')]);let hit=await trySymbols(direct,e.name||e.securityDescription,onProgress);if(hit)return hit;
-  try{const qs=await yahooSearch(ticker+' '+(e.name||e.securityDescription||''));const candidates=qs.filter(q=>q.quoteType==='EQUITY'&&q.symbol);const preferred=candidates.sort((a,b)=>{const sa=direct.includes(a.symbol)?100:0,sb=direct.includes(b.symbol)?100:0,ea=direct.some(x=>x.toUpperCase()===String(a.symbol).toUpperCase())?20:0,eb=direct.some(x=>x.toUpperCase()===String(b.symbol).toUpperCase())?20:0;return(sb+eb)-(sa+ea)});hit=await trySymbols(preferred.map(q=>q.symbol),e.name||e.securityDescription,onProgress);if(hit)return hit}catch(e2){} }
- return null
-}
-
-async function resolve(w,onProgress){
- if(!/^[A-Z0-9]{6}$/.test(w))throw Error('Bitte eine 6-stellige WKN eingeben.');
- onProgress?.(20,'Wertpapier wird über OpenFIGI aufgelöst …',2);
- try{const hit=await resolveFromOpenFigi(w,()=>onProgress?.(45,'Passendes Börsen-/Yahoo-Symbol wird geprüft …',3));if(hit)return hit}catch(e){}
- onProgress?.(50,'Alternative Symbolsuche wird durchgeführt …',3);
- for(const q of [w,'WKN '+w]){try{const qs=await yahooSearch(q),equities=qs.filter(x=>x.quoteType==='EQUITY'&&x.symbol),hit=await trySymbols(equities.map(x=>x.symbol),equities[0]?.longname||equities[0]?.shortname,()=>onProgress?.(65,'Kursdaten werden geladen …',4));if(hit)return hit}catch(e){}}
- throw Error('WKN '+w+' konnte weltweit keinem handelbaren Aktiensymbol zugeordnet werden.')
-}
-
+function uniq(a){return[...new Set(a.filter(Boolean))]}
+async function trySymbols(symbols,name,onProgress){for(const s of uniq(symbols)){try{const p=await chartData(s,onProgress),m=p.meta||{};return{name:name||m.longName||m.shortName||m.displayName||s,symbol:s,data:p.data,meta:m}}catch(e){}}return null}
+async function resolveFromOpenFigi(w,onProgress){const u='https://api.openfigi.com/v3/mapping/ID_WERTPAPIER/'+encodeURIComponent(w),r=await get(u),rows=Array.isArray(r)?(r[0]?.data||[]):(r.data||[]),equities=rows.filter(isEquity);if(!equities.length)return null;for(const e of equities){const ticker=(e.ticker||'').trim();if(!ticker)continue;const direct=uniq([ticker,...suffixList(e.exchCode).map(s=>ticker+s),ticker.replace(/\s+/g,'')]);let hit=await trySymbols(direct,e.name||e.securityDescription,onProgress);if(hit)return hit;try{const qs=await yahooSearch(ticker+' '+(e.name||e.securityDescription||'')),candidates=qs.filter(q=>q.quoteType==='EQUITY'&&q.symbol),preferred=candidates.sort((a,b)=>{const sa=direct.includes(a.symbol)?100:0,sb=direct.includes(b.symbol)?100:0,ea=direct.some(x=>x.toUpperCase()===String(a.symbol).toUpperCase())?20:0,eb=direct.some(x=>x.toUpperCase()===String(b.symbol).toUpperCase())?20:0;return(sb+eb)-(sa+ea)});hit=await trySymbols(preferred.map(q=>q.symbol),e.name||e.securityDescription,onProgress);if(hit)return hit}catch(e2){}}return null}
+async function resolve(w,onProgress){if(!/^[A-Z0-9]{6}$/.test(w))throw Error('Bitte eine 6-stellige WKN eingeben.');onProgress?.(20,'Wertpapier wird über OpenFIGI aufgelöst …',2);try{const hit=await resolveFromOpenFigi(w,()=>onProgress?.(45,'Passendes Börsen-/Yahoo-Symbol wird geprüft …',3));if(hit)return hit}catch(e){}onProgress?.(50,'Alternative Symbolsuche wird durchgeführt …',3);for(const q of [w,'WKN '+w]){try{const qs=await yahooSearch(q),equities=qs.filter(x=>x.quoteType==='EQUITY'&&x.symbol),hit=await trySymbols(equities.map(x=>x.symbol),equities[0]?.longname||equities[0]?.shortname,()=>onProgress?.(65,'Kursdaten werden geladen …',4));if(hit)return hit}catch(e){}}throw Error('WKN '+w+' konnte weltweit keinem handelbaren Aktiensymbol zugeordnet werden.')}
 const avg=a=>a.reduce((x,y)=>x+y,0)/a.length,sma=(a,n)=>a.length<n?null:avg(a.slice(-n));
 function RSI(a,n=14){if(a.length<n+1)return 50;let g=0,l=0;for(let i=a.length-n;i<a.length;i++){let d=a[i]-a[i-1];g+=Math.max(0,d);l+=Math.max(0,-d)}return l?100-100/(1+g/l):100}
 function MACD(a){let e12,e26,s,m=[],sig=[];for(const p of a){e12=e12==null?p:p*2/13+e12*11/13;e26=e26==null?p:p*2/27+e26*25/27;const x=e12-e26;m.push(x);s=s==null?x:x*.2+s*.8;sig.push(s)}return[m,sig]}
 function st(a){const m=avg(a);return Math.sqrt(avg(a.map(x=>(x-m)**2)))}
 function analyse(raw){const c=raw.map(x=>x.c),last=c.at(-1),a20=sma(c,20),a50=sma(c,50),a200=sma(c,200),r=RSI(c),[mm,ss]=MACD(c),rets=[];for(let i=Math.max(1,c.length-20);i<c.length;i++)rets.push(c[i]/c[i-1]-1);const v=st(rets)*Math.sqrt(252)*100;let sc=50,w=[];const add=(n,t)=>{sc+=n;w.push(t)};last>a20?add(8,'Kurs über SMA 20.'):add(-8,'Kurs unter SMA 20.');last>a50?add(10,'Kurs über SMA 50.'):add(-10,'Kurs unter SMA 50.');last>a200?add(18,'Kurs über SMA 200 – langfristiger Trend positiv.'):add(-18,'Kurs unter SMA 200 – langfristiger Trend negativ.');r<30?add(8,'RSI unter 30 – überverkauft.'):r>70?add(-8,'RSI über 70 – überkauft.'):add(5,'RSI neutral.');mm.at(-1)>ss.at(-1)?add(8,'MACD über Signallinie – Momentum positiv.'):add(-8,'MACD unter Signallinie – Momentum negativ.');sc=Math.max(0,Math.min(100,sc));return{c,a20,a50,a200,r,mm,ss,v,sc,w}}
-
 function recFor(score){return score>=68?'KAUFEN':score<=42?'NICHT KAUFEN':'BEOBACHTEN'}
 function recClass(rec){return rec==='KAUFEN'?'buy':rec==='NICHT KAUFEN'?'no':'watch'}
-
-function stockMarkup(s,i){const z=analyse(s.data),rec=recFor(z.sc),cls=recClass(rec),last=z.c.at(-1),chg=(last/z.c.at(-2)-1)*100;return `
-<details class="stock-group" ${i===0?'open':''}>
-  <summary>
-    <div class="summary-main"><span class="summary-name">${s.name}</span><span class="summary-symbol">${s.symbol}</span></div>
-    <span class="summary-result ${cls}">${rec} · ${Math.round(z.sc)}/100</span>
-  </summary>
-  <div class="stock-body">
-    <div class="grid">
-      <div class="card"><div class="label">Unternehmen</div><div class="value">${s.name}</div><div class="sub">${s.symbol}</div></div>
-      <div class="card"><div class="label">Kurs</div><div class="value">${fmt(last)}</div><div class="sub">${chg>=0?'+':''}${chg.toFixed(2)} %</div></div>
-      <div class="card"><div class="label">RSI 14</div><div class="value">${z.r.toFixed(1)}</div><div class="sub">${z.r<30?'Überverkauft':z.r>70?'Überkauft':'Neutral'}</div></div>
-      <div class="card"><div class="label">Trend</div><div class="value">${last>z.a200?'AUFWÄRTS':'ABWÄRTS'}</div><div class="sub">${last>z.a50?'mittelfristig positiv':'mittelfristig negativ'}</div></div>
-      <div class="card wide"><div class="label">Technische Empfehlung</div><div class="score">${rec}</div><div class="sub">Modellscore ${Math.round(z.sc)}/100</div><div class="meter"><span style="width:${z.sc}%"></span></div></div>
-      <div class="card"><div class="label">Technik-Score</div><div class="value">${Math.round(z.sc)}/100</div></div>
-      <div class="card"><div class="label">Risiko</div><div class="value">${z.v<20?'Niedrig':z.v<35?'Mittel':'Hoch'}</div></div>
-      <div class="card"><div class="label">Volatilität</div><div class="value">${z.v.toFixed(1)} % p.a.</div></div>
-      <div class="card"><div class="label">SMA 20 / 50 / 200</div><div class="value">${[z.a20,z.a50,z.a200].map(fmt).join(' / ')}</div></div>
-      <div class="card"><div class="label">Unterstützung</div><div class="value">${fmt(Math.min(...z.c.slice(-60)))}</div></div>
-      <div class="card"><div class="label">Widerstand</div><div class="value">${fmt(Math.max(...z.c.slice(-60)))}</div></div>
-    </div>
-    <div class="stock-charts">
-      <div class="chart"><div class="chart-title">Kursverlauf mit SMA 20 / 50 / 200</div><canvas id="price-${i}"></canvas></div>
-      <div class="chart small"><div class="chart-title">RSI 14</div><canvas id="rsi-${i}"></canvas></div>
-      <div class="chart small"><div class="chart-title">MACD</div><canvas id="macd-${i}"></canvas></div>
-    </div>
-    <section class="card why"><b>Warum diese Bewertung?</b><ul>${z.w.map(x=>'<li>'+x+'</li>').join('')}</ul></section>
-  </div>
-</details>`}
-
-function renderIndividuals(){
- $('individuals').innerHTML=stocks.map(stockMarkup).join('');
- stocks.forEach((s,i)=>drawStockCharts(s,i));
-}
-
-function drawStockCharts(s,i){
- const v=s.data.slice(-Math.max(30,days)),a=v.map(x=>x.c),lab=v.map(x=>x.d.toLocaleDateString('de-DE'));
- const z=analyse(s.data);
- const a20=v.map((_,j)=>j<19?null:sma(a.slice(0,j+1),20));
- const a50=v.map((_,j)=>j<49?null:sma(a.slice(0,j+1),50));
- const a200=v.map((_,j)=>j<199?null:sma(a.slice(0,j+1),200));
- s.charts=s.charts||{};
- Object.values(s.charts).forEach(c=>{if(c)c.destroy()});
- s.charts.price=new Chart($('price-'+i),{type:'line',data:{labels:lab,datasets:[{label:'Kurs',data:a,borderWidth:2,pointRadius:0},{label:'SMA 20',data:a20,pointRadius:0},{label:'SMA 50',data:a50,pointRadius:0},{label:'SMA 200',data:a200,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false}}});
- const rs=a.map((_,j)=>j<14?null:RSI(a.slice(0,j+1)));s.charts.rsi=new Chart($('rsi-'+i),{type:'line',data:{labels:lab,datasets:[{label:'RSI 14',data:rs,borderWidth:2,pointRadius:0},{label:'70',data:lab.map(()=>70),pointRadius:0},{label:'30',data:lab.map(()=>30),pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:100}}}});
- const[mm,ss]=MACD(a);s.charts.macd=new Chart($('macd-'+i),{type:'line',data:{labels:lab,datasets:[{label:'MACD',data:mm,borderWidth:2,pointRadius:0},{label:'Signal',data:ss,borderWidth:1,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false}});
-}
-
-function currency(s){return s.meta?.currency||''}
-function actualPrice(s){const m=s.meta||{};return Number.isFinite(m.regularMarketPrice)?m.regularMarketPrice:s.data.at(-1).c}
-
-function renderCompare(){
- const datasets=[];
- stocks.forEach(s=>{
-   const slice=s.data.slice(-Math.max(30,days));
-   if(!slice.length)return;
-   datasets.push({label:s.name+' ('+s.symbol+')',data:slice.map(x=>x.c),pointRadius:0,borderWidth:2});
- });
- const maxLen=Math.max(...stocks.map(s=>s.data.slice(-Math.max(30,days)).length));
- const ref=stocks.find(s=>s.data.slice(-Math.max(30,days)).length===maxLen);
- const labels=ref?ref.data.slice(-Math.max(30,days)).map(x=>x.d.toLocaleDateString('de-DE')):[];
- if(compareChart)compareChart.destroy();
- compareChart=new Chart($('compareChart'),{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},scales:{y:{title:{display:true,text:'Kurs (IST-Wert)'}}},plugins:{tooltip:{callbacks:{label:ctx=>{const s=stocks[ctx.datasetIndex];const unit=currency(s);return ctx.dataset.label+': '+fmt(ctx.parsed.y)+(unit?' '+unit:'')}}}}}});
- $('compareLegend').innerHTML=stocks.map(s=>'<span class="legend-item">'+s.name+'</span>').join('');
- $('comparePrices').innerHTML=stocks.map(s=>{const last=actualPrice(s),prev=s.data.at(-2)?.c??last,chg=(last/prev-1)*100;return '<div class="price-card"><div class="name">'+s.name+'</div><div class="symbol">'+s.symbol+'</div><div class="actual">'+fmt(last)+' '+currency(s)+'</div><div class="change '+(chg>=0?'up':'down')+'">'+(chg>=0?'+':'')+chg.toFixed(2)+' % seit letztem Schluss</div></div>'}).join('');
-}
-
-function renderAll(){renderCompare();renderIndividuals()}
-
-$('form').onsubmit=async e=>{
- e.preventDefault();
- $('err').style.display='none';$('app').style.display='none';$('analyzeBtn').disabled=true;startProgress();stocks=[];
- try{
-   const values=[$('wkn1').value.trim().toUpperCase(),$('wkn2').value.trim().toUpperCase(),$('wkn3').value.trim().toUpperCase()].filter(Boolean);
-   const unique=uniq(values);
-   if(!unique.length)throw Error('Bitte mindestens eine WKN eingeben.');
-   if(unique.length<values.length)throw Error('Bitte jede WKN nur einmal eingeben.');
-   if(unique.length>3)throw Error('Es können maximal drei WKN analysiert werden.');
-   setProgress(12,'Wertpapiere werden aufgelöst …',2);
-   for(let i=0;i<unique.length;i++){
-     const w=unique[i];
-     const start=15+i*(65/unique.length);
-     const r=await resolve(w,(p,s,step)=>{const scaled=start+(p/100)*(65/unique.length);setProgress(Math.min(80,scaled),s+' · Aktie '+(i+1)+'/'+unique.length,step)});
-     stocks.push(r);
-   }
-   setProgress(82,'Technische Kennzahlen werden für alle Titel berechnet …',5);
-   $('app').style.display='block';renderAll();finishProgress();
- }catch(e){$('err').textContent=e.message;$('err').style.display='block';$('progressStatus').textContent='Analyse konnte nicht vollständig abgeschlossen werden.';}
- finally{$('analyzeBtn').disabled=false;$('load').style.display='none'}
-};
-
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');days=+b.dataset.d;if(stocks.length)renderAll()});
-$('openAll').onclick=()=>document.querySelectorAll('.stock-group').forEach(x=>x.open=true);
-$('closeAll').onclick=()=>document.querySelectorAll('.stock-group').forEach(x=>x.open=false);
+function stockMarkup(s,i){const z=analyse(s.data),rec=recFor(z.sc),cls=recClass(rec),last=z.c.at(-1),chg=(last/z.c.at(-2)-1)*100;return `<details class="stock-group" ${i===0?'open':''}><summary><div class="summary-main"><span class="summary-name">${s.name}</span><span class="summary-symbol">${s.symbol}</span></div><span class="summary-result ${cls}">${rec} · ${Math.round(z.sc)}/100</span></summary><div class="stock-body"><div class="grid"><div class="card"><div class="label">Unternehmen</div><div class="value">${s.name}</div><div class="sub">${s.symbol}</div></div><div class="card"><div class="label">Kurs</div><div class="value">${fmt(last)}</div><div class="sub">${chg>=0?'+':''}${chg.toFixed(2)} %</div></div><div class="card"><div class="label">RSI 14</div><div class="value">${z.r.toFixed(1)}</div><div class="sub">${z.r<30?'Überverkauft':z.r>70?'Überkauft':'Neutral'}</div></div><div class="card"><div class="label">Trend</div><div class="value">${last>z.a200?'AUFWÄRTS':'ABWÄRTS'}</div><div class="sub">${last>z.a50?'mittelfristig positiv':'mittelfristig negativ'}</div></div><div class="card wide"><div class="label">Technische Empfehlung</div><div class="score">${rec}</div><div class="sub">Modellscore ${Math.round(z.sc)}/100</div><div class="meter"><span style="width:${z.sc}%"></span></div></div><div class="card"><div class="label">Technik-Score</div><div class="value">${Math.round(z.sc)}/100</div></div><div class="card"><div class="label">Risiko</div><div class="value">${z.v<20?'Niedrig':z.v<35?'Mittel':'Hoch'}</div></div><div class="card"><div class="label">Volatilität</div><div class="value">${z.v.toFixed(1)} % p.a.</div></div><div class="card wide"><div class="label">SMA 20 / 50 / 200</div><div class="value">${[z.a20,z.a50,z.a200].map(fmt).join(' / ')}</div></div><div class="card"><div class="label">Unterstützung</div><div class="value">${fmt(Math.min(...z.c.slice(-60)))}</div></div><div class="card"><div class="label">Widerstand</div><div class="value">${fmt(Math.max(...z.c.slice(-60)))}</div></div></div><div class="stock-charts"><div class="chart"><div class="chart-title">Kursverlauf mit SMA 20 / 50 / 200</div><canvas id="price-${i}"></canvas></div><div class="chart small"><div class="chart-title">RSI 14</div><canvas id="rsi-${i}"></canvas></div><div class="chart small"><div class="chart-title">MACD</div><canvas id="macd-${i}"></canvas></div></div><section class="card why"><b>Warum diese Bewertung?</b><ul>${z.w.map(x=>'<li>'+x+'</li>').join('')}</ul></section></div></details>`}
+function renderIndividuals(){$('individuals').innerHTML=stocks.map(stockMarkup).join('');stocks.forEach((s,i)=>drawStockCharts(s,i))}
+function drawStockCharts(s,i){const v=s.data.slice(-Math.max(30,days)),a=v.map(x=>x.c),lab=v.map(x=>x.d.toLocaleDateString('de-DE'));const a20=v.map((_,j)=>j<19?null:sma(a.slice(0,j+1),20)),a50=v.map((_,j)=>j<49?null:sma(a.slice(0,j+1),50)),a200=v.map((_,j)=>j<199?null:sma(a.slice(0,j+1),200));s.charts=s.charts||{};Object.values(s.charts).forEach(c=>{if(c)c.destroy()});s.charts.price=new Chart($('price-'+i),{type:'line',data:{labels:lab,datasets:[{label:'Kurs',data:a,borderWidth:2,pointRadius:0},{label:'SMA 20',data:a20,pointRadius:0},{label:'SMA 50',data:a50,pointRadius:0},{label:'SMA 200',data:a200,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false}}});const rs=a.map((_,j)=>j<14?null:RSI(a.slice(0,j+1)));s.charts.rsi=new Chart($('rsi-'+i),{type:'line',data:{labels:lab,datasets:[{label:'RSI 14',data:rs,borderWidth:2,pointRadius:0},{label:'70',data:lab.map(()=>70),pointRadius:0},{label:'30',data:lab.map(()=>30),pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:100}}}});const[mm,ss]=MACD(a);s.charts.macd=new Chart($('macd-'+i),{type:'line',data:{labels:lab,datasets:[{label:'MACD',data:mm,borderWidth:2,pointRadius:0},{label:'Signal',data:ss,borderWidth:1,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false}})}
+$('form').onsubmit=async e=>{e.preventDefault();$('err').style.display='none';$('app').style.display='none';$('analyzeBtn').disabled=true;startProgress();stocks=[];try{const values=[$('wkn1').value.trim().toUpperCase(),$('wkn2').value.trim().toUpperCase(),$('wkn3').value.trim().toUpperCase()].filter(Boolean),unique=uniq(values);if(!unique.length)throw Error('Bitte mindestens eine WKN eingeben.');if(unique.length<values.length)throw Error('Bitte jede WKN nur einmal eingeben.');if(unique.length>3)throw Error('Es können maximal drei WKN analysiert werden.');setProgress(12,'Wertpapiere werden aufgelöst …',2);for(let i=0;i<unique.length;i++){const w=unique[i],start=15+i*(65/unique.length),r=await resolve(w,(p,s,step)=>{const scaled=start+(p/100)*(65/unique.length);setProgress(Math.min(80,scaled),s+' · Aktie '+(i+1)+'/'+unique.length,step)});stocks.push(r)}setProgress(82,'Technische Kennzahlen werden für alle Titel berechnet …',5);$('app').style.display='block';renderIndividuals();finishProgress()}catch(e){$('err').textContent=e.message;$('err').style.display='block';$('progressStatus').textContent='Analyse konnte nicht vollständig abgeschlossen werden.'}finally{$('analyzeBtn').disabled=false;$('load').style.display='none'}};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');days=+b.dataset.d;if(stocks.length)renderIndividuals()});
+$('openAll').onclick=()=>document.querySelectorAll('.stock-group').forEach(x=>x.open=true);$('closeAll').onclick=()=>document.querySelectorAll('.stock-group').forEach(x=>x.open=false);
 </script>
 </body>
 </html>
