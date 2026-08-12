@@ -16,4 +16,24 @@ sc=Math.max(0,Math.min(100,Math.round(sc)));return{c,a20,a50,a200,r,mm:m.value,s
 function rec(score){return score>=70?'KAUFEN':score>=45?'BEOBACHTEN':'NICHT KAUFEN'}
 window.AKTScoreModel={analyse,rec,sma,rsi,macd,volatility};
 window.analyse=analyse;window.recFor=rec;
+setTimeout(()=>{
+  window.analyse=analyse;window.recFor=rec;
+  if(typeof window.scanTop10==='function'&&!window.__aktScoreTop10Patched){
+    window.__aktScoreTop10Patched=true;
+    const oldScan=window.scanTop10;
+    window.scanTop10=async function(){
+      if(window.top10Busy)return;window.top10Busy=true;
+      try{
+        const r=await fetch('./top10.json?ts='+Date.now(),{cache:'no-store'});const j=await r.json();
+        const items=[];
+        for(const x of (j.items||[])){
+          try{const d=await window.chartData(x.symbol);const z=analyse(d.data);items.push({...x,price:d.data.at(-1).c,change:d.data.length>1?(d.data.at(-1).c/d.data.at(-2).c-1)*100,rsi:z.r,score:z.sc})}catch(_){}
+        }
+        items.sort((a,b)=>b.score-a.score);const out=items.filter(x=>x.score>=90).slice(0,10);
+        if(window.$){$('top10Date').textContent='Live · '+new Date().toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});$('top10Grid').innerHTML=out.length?out.map(window.top10Card).join(''):'<div class="top10-empty">Aktuell keine Treffer ≥90/100.</div>'}
+      }catch(_){try{await oldScan()}catch(e){}}finally{window.top10Busy=false}
+    };
+    window.scanTop10();
+  }
+},0);
 })();
