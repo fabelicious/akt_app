@@ -23,6 +23,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Validate static files
+        run: |
+          test -s index.html
+          test -s enhancements.js
+          test -s top10.json
+          python -m json.tool top10.json >/dev/null
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload site
