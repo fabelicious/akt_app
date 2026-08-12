@@ -1,0 +1,41 @@
+name: One-time score and cleanup fix
+on:
+  push:
+    paths:
+      - 'score-validation.js'
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch application
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          s=re.sub(r'\n<script src="\./enhancements\.js\?v=[^"]+"></script>\n<script src="\./enhancements\.js\?v=[^"]+"></script>', '\n<script src="./score-validation.js?v=1"></script>\n<script src="./enhancements.js?v=1"></script>', s, count=1)
+          old=re.search(r'function analyse\(raw\)\{.*?\n\}\nfunction recFor',s,re.S)
+          new='''function analyse(raw){\n const c=raw.map(x=>Number(x.c)).filter(Number.isFinite),last=c.at(-1);\n const a20=sma(c,20),a50=sma(c,50),a200=sma(c,200);\n const r=window.AKTScoreValidation?.wilderRSI(c,14)??RSI(c), [mm,ss]=window.AKTScoreValidation?.macdStandard(c)?.macd!=null ? [window.AKTScoreValidation.macdStandard(c).macd,window.AKTScoreValidation.macdStandard(c).signal] : MACD(c);\n const v=window.AKTScoreValidation?.volatility(c,20)??0;\n let sc=0,w=[];\n if(last>a20){sc+=10;w.push('Kurs über SMA 20.')} else w.push('Kurs unter SMA 20.');\n if(last>a50){sc+=10;w.push('Kurs über SMA 50.')} else w.push('Kurs unter SMA 50.');\n if(last>a200){sc+=20;w.push('Kurs über SMA 200 – langfristiger Trend positiv.')} else w.push('Kurs unter SMA 200 – langfristiger Trend negativ.');\n if(r>=50&&r<=65){sc+=20;w.push('RSI 14 im konstruktiven Bereich 50–65.')} else if(r>=40&&r<50){sc+=15;w.push('RSI 14 leicht unter dem konstruktiven Bereich.')} else if(r>65&&r<=70){sc+=15;w.push('RSI 14 erhöht, aber noch nicht überkauft.')} else if(r>=30&&r<40){sc+=10;w.push('RSI 14 schwach.')} else if(r<30){sc+=6;w.push('RSI 14 überverkauft – mögliches Erholungssignal, aber erhöhtes Risiko.')} else {sc+=6;w.push('RSI 14 über 70 – überkauft.');}\n if(Number.isFinite(mm)&&Number.isFinite(ss)&&mm>ss){sc+=20;w.push('MACD über Signallinie – Momentum positiv.')} else {sc+=5;w.push('MACD unter Signallinie – Momentum schwach.');}\n if(v<20){sc+=15;w.push('Volatilität niedrig.')} else if(v<35){sc+=10;w.push('Volatilität moderat.')} else if(v<50){sc+=6;w.push('Volatilität erhöht.')} else {sc+=2;w.push('Volatilität hoch – erhöhtes Risiko.');}\n sc=Math.max(0,Math.min(100,sc));\n return{c,a20,a50,a200,r,mm,ss,v,sc,w};\n}\nfunction recFor'''
+          if not old: raise SystemExit('analyse function not found')
+          s=s[:old.start()]+new+s[old.end()-len('function recFor'):]
+          p.write_text(s,encoding='utf-8')
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'Validate and standardize technical score model'
+          git push
+      - name: Remove one-time workflow
+        if: always()
+        shell: bash
+        run: |
+          git fetch origin main
+          git checkout main
+          git rm -f .github/workflows/one-time-score-fix.yml || true
+          git diff --cached --quiet || git commit -m 'Remove one-time migration workflow'
+          git push || true
