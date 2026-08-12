@@ -1,0 +1,17 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local tooling / secrets
+.env
+.env.*
+*.log
+
+# Generated / temporary files
+node_modules/
+dist/
+build/
+coverage/
+.tmp/
