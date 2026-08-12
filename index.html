@@ -38,7 +38,7 @@
 
 <section class="compare-card">
   <div class="compare-head">
-    <div><div class="compare-title">Kursvergleich – Aktien überlagert</div><div class="compare-sub">Der Chart zeigt die relative Entwicklung ab Startwert 100. Darüber wird zusätzlich der tatsächliche aktuelle Kurs je Aktie angezeigt.</div></div>
+    <div><div class="compare-title">Kursvergleich – IST-Werte</div><div class="compare-sub">Der Chart zeigt die tatsächlichen Kurse der Aktien im gewählten Zeitraum – ohne Normierung und ohne Startwert 100.</div></div>
     <div class="compare-legend" id="compareLegend"></div>
   </div>
   <div class="compare-prices" id="comparePrices"></div>
@@ -91,7 +91,7 @@ async function trySymbols(symbols,name,onProgress){for(const s of uniq(symbols))
 async function resolveFromOpenFigi(w,onProgress){
  const u='https://api.openfigi.com/v3/mapping/ID_WERTPAPIER/'+encodeURIComponent(w),r=await get(u);const rows=Array.isArray(r)?(r[0]?.data||[]):(r.data||[]);const equities=rows.filter(isEquity);if(!equities.length)return null;
  for(const e of equities){const ticker=(e.ticker||'').trim();if(!ticker)continue;const direct=uniq([ticker,...suffixList(e.exchCode).map(s=>ticker+s),ticker.replace(/\s+/g,'')]);let hit=await trySymbols(direct,e.name||e.securityDescription,onProgress);if(hit)return hit;
-  try{const qs=await yahooSearch(ticker+' '+(e.name||e.securityDescription||''));const candidates=qs.filter(q=>q.quoteType==='EQUITY'&&q.symbol);const preferred=candidates.sort((a,b)=>{const sa=direct.includes(a.symbol)?100:0,sb=direct.includes(b.symbol)?100:0,ea=direct.some(x=>x.toUpperCase()===String(a.symbol).toUpperCase())?20:0,eb=direct.some(x=>x.toUpperCase()===String(b.symbol).toUpperCase())?20:0;return(sb+eb)-(sa+ea)});hit=await trySymbols(preferred.map(q=>q.symbol),e.name||e.securityDescription,onProgress);if(hit)return hit}catch(e2){}}
+  try{const qs=await yahooSearch(ticker+' '+(e.name||e.securityDescription||''));const candidates=qs.filter(q=>q.quoteType==='EQUITY'&&q.symbol);const preferred=candidates.sort((a,b)=>{const sa=direct.includes(a.symbol)?100:0,sb=direct.includes(b.symbol)?100:0,ea=direct.some(x=>x.toUpperCase()===String(a.symbol).toUpperCase())?20:0,eb=direct.some(x=>x.toUpperCase()===String(b.symbol).toUpperCase())?20:0;return(sb+eb)-(sa+ea)});hit=await trySymbols(preferred.map(q=>q.symbol),e.name||e.securityDescription,onProgress);if(hit)return hit}catch(e2){} }
  return null
 }
 
@@ -168,14 +168,13 @@ function renderCompare(){
  stocks.forEach(s=>{
    const slice=s.data.slice(-Math.max(30,days));
    if(!slice.length)return;
-   const base=slice[0].c;
-   datasets.push({label:s.name+' ('+s.symbol+')',data:slice.map(x=>x.c/base*100),pointRadius:0,borderWidth:2});
+   datasets.push({label:s.name+' ('+s.symbol+')',data:slice.map(x=>x.c),pointRadius:0,borderWidth:2});
  });
  const maxLen=Math.max(...stocks.map(s=>s.data.slice(-Math.max(30,days)).length));
  const ref=stocks.find(s=>s.data.slice(-Math.max(30,days)).length===maxLen);
  const labels=ref?ref.data.slice(-Math.max(30,days)).map(x=>x.d.toLocaleDateString('de-DE')):[];
  if(compareChart)compareChart.destroy();
- compareChart=new Chart($('compareChart'),{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},scales:{y:{title:{display:true,text:'Entwicklung (Start = 100)'}}}}});
+ compareChart=new Chart($('compareChart'),{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},scales:{y:{title:{display:true,text:'Kurs (IST-Wert)'}}},plugins:{tooltip:{callbacks:{label:ctx=>{const s=stocks[ctx.datasetIndex];const unit=currency(s);return ctx.dataset.label+': '+fmt(ctx.parsed.y)+(unit?' '+unit:'')}}}}}});
  $('compareLegend').innerHTML=stocks.map(s=>'<span class="legend-item">'+s.name+'</span>').join('');
  $('comparePrices').innerHTML=stocks.map(s=>{const last=actualPrice(s),prev=s.data.at(-2)?.c??last,chg=(last/prev-1)*100;return '<div class="price-card"><div class="name">'+s.name+'</div><div class="symbol">'+s.symbol+'</div><div class="actual">'+fmt(last)+' '+currency(s)+'</div><div class="change '+(chg>=0?'up':'down')+'">'+(chg>=0?'+':'')+chg.toFixed(2)+' % seit letztem Schluss</div></div>'}).join('');
 }
