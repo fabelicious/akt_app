@@ -27,3 +27,32 @@ function patchScan(){const original=window.scanTop10;if(typeof original!=='funct
 function init(){installStyles();['wkn1','wkn2','wkn3'].forEach(setupInput);patchScan()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
+
+/* Always refresh the Top 10 after a browser reload and show the actual scan time. */
+(function(){
+  function refreshTop10OnReload(){
+    const dateEl=document.getElementById('top10Date');
+    if(dateEl){dateEl.textContent='Aktualisiere …';}
+    const run=()=>{
+      if(typeof window.scanTop10==='function'){
+        try{ window.scanTop10(); }catch(_){ }
+      }else if(document.readyState!=='complete'){
+        setTimeout(run,150);
+      }
+    };
+    setTimeout(run,80);
+  }
+  function updateDate(){
+    const dateEl=document.getElementById('top10Date');
+    if(!dateEl)return;
+    try{
+      const j=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null');
+      if(j&&j.generatedAt){
+        const d=new Date(j.generatedAt);
+        if(!Number.isNaN(d.getTime())) dateEl.textContent='Aktualisiert: '+d.toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'});
+      }
+    }catch(_){ }
+  }
+  window.addEventListener('pageshow',function(){refreshTop10OnReload();setTimeout(updateDate,1200)});
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(updateDate,1000)});
+})();
