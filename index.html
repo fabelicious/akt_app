@@ -6,7 +6,9 @@
 <title>AKT Pro – Globale Aktienanalyse per WKN</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
-:root{font-family:system-ui,sans-serif;color:#172033;background:#f3f6fa}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1200px;margin:auto;padding:20px 15px}.hero{background:#111827;color:#fff;border-radius:20px;padding:24px}.hero h1{margin:0 0 5px}.hero p{color:#cbd5e1}.search{display:flex;gap:8px}.search input{flex:1;padding:13px;border-radius:10px;border:1px solid #475569;background:#1f2937;color:#fff;font-size:16px}.btn,.tab{padding:11px 15px;border:0;border-radius:10px;font-weight:700;cursor:pointer}.btn{background:#38bdf8}.hint,.foot{font-size:12px;color:#94a3b8;margin-top:10px}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:13px 0}.tab{background:#fff;border:1px solid #d1d5db}.tab.active{background:#111827;color:#fff}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:15px;padding:15px}.wide{grid-column:span 2}.label{font-size:11px;text-transform:uppercase;color:#64748b}.value{font-size:21px;font-weight:850;margin-top:5px}.sub{font-size:13px;color:#64748b}.score{font-size:30px;font-weight:900}.meter{height:9px;background:#e5e7eb;border-radius:9px;margin-top:10px}.meter span{display:block;height:100%;width:50%;background:#38bdf8;border-radius:9px}.chart{height:400px;background:#fff;border:1px solid #e5e7eb;border-radius:15px;margin-top:11px;padding:12px}.small{height:240px}.section{margin-top:11px}.notice{padding:12px;background:#f8fafc;border-radius:10px;color:#475569}.error{display:none;margin-top:10px;background:#fee2e2;color:#991b1b;padding:12px;border-radius:10px}@media(max-width:850px){.grid{grid-template-columns:1fr 1fr}.wide{grid-column:span 2}}@media(max-width:550px){.grid{grid-template-columns:1fr}.wide{grid-column:span 1}.search{flex-direction:column}}
+:root{font-family:system-ui,sans-serif;color:#172033;background:#f3f6fa}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1200px;margin:auto;padding:20px 15px}.hero{background:#111827;color:#fff;border-radius:20px;padding:24px}.hero h1{margin:0 0 5px}.hero p{color:#cbd5e1}.search{display:flex;gap:8px}.search input{flex:1;padding:13px;border-radius:10px;border:1px solid #475569;background:#1f2937;color:#fff;font-size:16px}.btn,.tab{padding:11px 15px;border:0;border-radius:10px;font-weight:700;cursor:pointer}.btn{background:#38bdf8}.btn:disabled{opacity:.65;cursor:wait}.hint,.foot{font-size:12px;color:#94a3b8;margin-top:10px}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:13px 0}.tab{background:#fff;border:1px solid #d1d5db}.tab.active{background:#111827;color:#fff}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:15px;padding:15px}.wide{grid-column:span 2}.label{font-size:11px;text-transform:uppercase;color:#64748b}.value{font-size:21px;font-weight:850;margin-top:5px}.sub{font-size:13px;color:#64748b}.score{font-size:30px;font-weight:900}.meter{height:9px;background:#e5e7eb;border-radius:9px;margin-top:10px}.meter span{display:block;height:100%;width:50%;background:#38bdf8;border-radius:9px}.chart{height:400px;background:#fff;border:1px solid #e5e7eb;border-radius:15px;margin-top:11px;padding:12px}.small{height:240px}.section{margin-top:11px}.notice{padding:12px;background:#f8fafc;border-radius:10px;color:#475569}.error{display:none;margin-top:10px;background:#fee2e2;color:#991b1b;padding:12px;border-radius:10px}
+.progress-wrap{display:none;margin-top:14px}.progress-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#cbd5e1;margin-bottom:7px}.progress-track{height:12px;background:#273449;border-radius:999px;overflow:hidden;border:1px solid #475569}.progress-fill{height:100%;width:0%;background:#38bdf8;border-radius:999px;transition:width .35s ease}.progress-pct{font-weight:800;color:#fff}.progress-dots{display:flex;justify-content:space-between;margin-top:7px;font-size:10px;color:#64748b}.progress-dots span.active{color:#38bdf8;font-weight:700}
+@media(max-width:850px){.grid{grid-template-columns:1fr 1fr}.wide{grid-column:span 2}}@media(max-width:550px){.grid{grid-template-columns:1fr}.wide{grid-column:span 1}.search{flex-direction:column}.progress-dots span:nth-child(even){display:none}}
 </style>
 </head>
 <body>
@@ -14,9 +16,14 @@
 <section class="hero">
 <h1>📈 AKT Pro</h1>
 <p>Aktien weltweit über WKN suchen und technisch analysieren.</p>
-<form class="search" id="form"><input id="wkn" placeholder="WKN, z. B. 840400 oder A1JX52" inputmode="text" autocomplete="off"><button class="btn">Analysieren</button></form>
+<form class="search" id="form"><input id="wkn" placeholder="WKN, z. B. 840400 oder A1JX52" inputmode="text" autocomplete="off"><button class="btn" id="analyzeBtn">Analysieren</button></form>
 <div class="hint">WKN → OpenFIGI → Börsen-/Yahoo-Symbol. Damit werden auch internationale Aktien unterstützt, ohne eine deutsche ISIN zu unterstellen.</div>
-<div id="load" class="hint" style="display:none">Wertpapier und Kursdaten werden geladen …</div>
+<div class="progress-wrap" id="progressWrap">
+  <div class="progress-head"><span id="progressStatus">Analyse wird vorbereitet …</span><span class="progress-pct" id="progressPct">0 %</span></div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-dots"><span data-step="1">WKN prüfen</span><span data-step="2">Wertpapier auflösen</span><span data-step="3">Symbol ermitteln</span><span data-step="4">Kursdaten laden</span><span data-step="5">Analyse berechnen</span><span data-step="6">Ergebnis</span></div>
+</div>
+<div id="load" class="hint" style="display:none"></div>
 <div id="err" class="error"></div>
 </section>
 <div id="app" style="display:none">
@@ -44,116 +51,60 @@
 let raw=[],sym='',nm='',days=30,pc,rc,mc;
 const $=id=>document.getElementById(id),fmt=x=>Number(x).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
 
+function setProgress(percent,status,step){
+ $('progressFill').style.width=percent+'%';$('progressPct').textContent=Math.round(percent)+' %';$('progressStatus').textContent=status;
+ document.querySelectorAll('.progress-dots span').forEach(x=>x.classList.toggle('active',+x.dataset.step<=step));
+}
+function startProgress(){ $('progressWrap').style.display='block';setProgress(5,'Eingabe wird geprüft …',1); }
+function finishProgress(){ setProgress(100,'Analyse abgeschlossen – Ergebnis wird angezeigt.',6); }
+
 async function get(url){
- const proxies=[u=>'https://corsproxy.io/?url='+encodeURIComponent(u),u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)];
- let last='';
+ const proxies=[u=>'https://corsproxy.io/?url='+encodeURIComponent(u),u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)];let last='';
  for(const make of proxies){try{const r=await fetch(make(url),{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const t=await r.text();if(!t.trim())throw Error('leere Antwort');return JSON.parse(t)}catch(e){last=e.message}}
  throw Error(last||'Datenabruf fehlgeschlagen')
 }
 
-async function chart(symbol){
+async function chart(symbol,onProgress){
+ if(onProgress)onProgress();
  const end=Math.floor(Date.now()/1000),start=end-60*60*24*1900;
  const u='https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(symbol)+'?period1='+start+'&period2='+end+'&interval=1d&events=history&includeAdjustedClose=true';
- const z=(await get(u)).chart?.result?.[0];
- if(!z)throw Error('keine Kursdaten');
+ const z=(await get(u)).chart?.result?.[0];if(!z)throw Error('keine Kursdaten');
  const q=z.indicators.quote[0],a=z.indicators.adjclose?.[0]?.adjclose;
  const data=z.timestamp.map((t,i)=>({d:new Date(t*1000),c:a?.[i]??q.close[i]})).filter(x=>Number.isFinite(x.c));
- if(data.length<200)throw Error('zu wenig Historie');
- return{symbol,data,meta:z.meta||{}}
+ if(data.length<200)throw Error('zu wenig Historie');return{symbol,data,meta:z.meta||{}}
 }
-
-async function yahooSearch(q){
- return(await get('https://query1.finance.yahoo.com/v1/finance/search?q='+encodeURIComponent(q)+'&quotesCount=30&newsCount=0')).quotes||[]
-}
-
-const yahooSuffixes={
- US:[''],NYSE:[''],NASDAQ:[''],AMEX:[''],ARCA:[''],OTC:[''],
- GY:['.DE','.F'],GF:['.F','.DE'],GR:['.DE','.F'],GA:['.DE','.F'],GB:['.DE','.F'],GM:['.DE','.F'],GI:['.DE','.F'],GZ:['.DE','.F'],GQ:['.DE','.F'],
- LN:['.L'],LE:['.L'],LO:['.L'],LX:['.L'],PA:['.PA'],FP:['.PA'],AS:['.AS'],NA:['.AS'],BR:['.BR'],BB:['.BR'],MI:['.MI'],IM:['.MI'],MC:['.MC'],SM:['.MC'],SW:['.SW'],VX:['.SW'],VI:['.VI'],HE:['.HE'],ST:['.ST'],CO:['.CO'],DC:['.CO'],OL:['.OL'],NO:['.OL'],LS:['.LS'],AT:['.AT'],TA:['.TA'],HK:['.HK'],JP:['.T'],T:['.T'],KS:['.KS'],KQ:['.KQ'],NS:['.NS'],BO:['.BO'],AU:['.AX'],AX:['.AX'],SI:['.SI'],TW:['.TW'],TWO:['.TWO'],SA:['.SA'],BZ:['.SA'],MX:['.MX'],JO:['.JO'],JK:['.JK'],KL:['.KL'],BK:['.BK'],NZ:['.NZ'],IS:['.IS'],SR:['.SR'],SS:['.SS'],SZ:['.SZ'],CN:['.SS','.SZ']
-};
-
-function isEquity(x){
- const s=((x.marketSector||'')+' '+(x.securityType||'')+' '+(x.securityType2||'')).toLowerCase();
- return s.includes('equity')||s.includes('common stock')||s.includes('depositary receipt')||s.includes('adr')||s.includes('reit');
-}
+async function yahooSearch(q){return(await get('https://query1.finance.yahoo.com/v1/finance/search?q='+encodeURIComponent(q)+'&quotesCount=30&newsCount=0')).quotes||[]}
+const yahooSuffixes={US:[''],NYSE:[''],NASDAQ:[''],AMEX:[''],ARCA:[''],OTC:[''],GY:['.DE','.F'],GF:['.F','.DE'],GR:['.DE','.F'],GA:['.DE','.F'],GB:['.DE','.F'],GM:['.DE','.F'],GI:['.DE','.F'],GZ:['.DE','.F'],GQ:['.DE','.F'],LN:['.L'],LE:['.L'],LO:['.L'],LX:['.L'],PA:['.PA'],FP:['.PA'],AS:['.AS'],NA:['.AS'],BR:['.BR'],BB:['.BR'],MI:['.MI'],IM:['.MI'],MC:['.MC'],SM:['.MC'],SW:['.SW'],VX:['.SW'],VI:['.VI'],HE:['.HE'],ST:['.ST'],CO:['.CO'],DC:['.CO'],OL:['.OL'],NO:['.OL'],LS:['.LS'],AT:['.AT'],TA:['.TA'],HK:['.HK'],JP:['.T'],T:['.T'],KS:['.KS'],KQ:['.KQ'],NS:['.NS'],BO:['.BO'],AU:['.AX'],AX:['.AX'],SI:['.SI'],TW:['.TW'],TWO:['.TWO'],SA:['.SA'],BZ:['.SA'],MX:['.MX'],JO:['.JO'],JK:['.JK'],KL:['.KL'],BK:['.BK'],NZ:['.NZ'],IS:['.IS'],SR:['.SR'],SS:['.SS'],SZ:['.SZ'],CN:['.SS','.SZ']};
+function isEquity(x){const s=((x.marketSector||'')+' '+(x.securityType||'')+' '+(x.securityType2||'')).toLowerCase();return s.includes('equity')||s.includes('common stock')||s.includes('depositary receipt')||s.includes('adr')||s.includes('reit')}
 function suffixList(exch){return yahooSuffixes[(exch||'').toUpperCase()]||['.DE','.F','']}
 function uniq(a){return [...new Set(a.filter(Boolean))]}
+async function trySymbols(symbols,name,onProgress){for(const s of uniq(symbols)){try{const p=await chart(s,onProgress);const m=p.meta||{};return{name:name||m.longName||m.shortName||m.displayName||s,symbol:s,data:p.data}}catch(e){}}return null}
 
-async function trySymbols(symbols,name){
- for(const s of uniq(symbols)){
-  try{const p=await chart(s);const m=p.meta||{};return{name:name||m.longName||m.shortName||m.displayName||s,symbol:s,data:p.data}}
-  catch(e){}
- }
+async function resolveFromOpenFigi(w,onProgress){
+ const u='https://api.openfigi.com/v3/mapping/ID_WERTPAPIER/'+encodeURIComponent(w),r=await get(u);const rows=Array.isArray(r)?(r[0]?.data||[]):(r.data||[]);const equities=rows.filter(isEquity);if(!equities.length)return null;
+ for(const e of equities){const ticker=(e.ticker||'').trim();if(!ticker)continue;const direct=uniq([ticker,...suffixList(e.exchCode).map(s=>ticker+s),ticker.replace(/\s+/g,'')]);let hit=await trySymbols(direct,e.name||e.securityDescription,onProgress);if(hit)return hit;
+  try{const qs=await yahooSearch(ticker+' '+(e.name||e.securityDescription||''));const candidates=qs.filter(q=>q.quoteType==='EQUITY'&&q.symbol);const preferred=candidates.sort((a,b)=>{const sa=direct.includes(a.symbol)?100:0,sb=direct.includes(b.symbol)?100:0,ea=direct.some(x=>x.toUpperCase()===String(a.symbol).toUpperCase())?20:0,eb=direct.some(x=>x.toUpperCase()===String(b.symbol).toUpperCase())?20:0;return(sb+eb)-(sa+ea)});hit=await trySymbols(preferred.map(q=>q.symbol),e.name||e.securityDescription,onProgress);if(hit)return hit}catch(e2){}}
  return null
 }
 
-async function resolveFromOpenFigi(w){
- const u='https://api.openfigi.com/v3/mapping/ID_WERTPAPIER/'+encodeURIComponent(w);
- const r=await get(u);
- const rows=Array.isArray(r)?(r[0]?.data||[]):(r.data||[]);
- const equities=rows.filter(isEquity);
- if(!equities.length)return null;
- for(const e of equities){
-  const ticker=(e.ticker||'').trim();
-  if(!ticker)continue;
-  const direct=uniq([ticker,...suffixList(e.exchCode).map(s=>ticker+s),ticker.replace(/\s+/g,'')]);
-  let hit=await trySymbols(direct,e.name||e.securityDescription);
-  if(hit)return hit;
-  try{
-   const qs=await yahooSearch(ticker+' '+(e.name||e.securityDescription||''));
-   const candidates=qs.filter(q=>q.quoteType==='EQUITY'&&q.symbol);
-   const preferred=candidates.sort((a,b)=>{
-    const sa=direct.includes(a.symbol)?100:0, sb=direct.includes(b.symbol)?100:0;
-    const ea=direct.some(x=>x.toUpperCase()===String(a.symbol).toUpperCase())?20:0;
-    const eb=direct.some(x=>x.toUpperCase()===String(b.symbol).toUpperCase())?20:0;
-    return(sb+eb)-(sa+ea)
-   });
-   hit=await trySymbols(preferred.map(q=>q.symbol),e.name||e.securityDescription);
-   if(hit)return hit;
-  }catch(e2){}
- }
- return null
-}
-
-async function resolve(w){
+async function resolve(w,onProgress){
  if(!/^[A-Z0-9]{6}$/.test(w))throw Error('Bitte eine 6-stellige WKN eingeben.');
- // 1. Primär: echte WKN-Auflösung über OpenFIGI. Keine falsche DE-ISIN-Annahme mehr.
- try{const hit=await resolveFromOpenFigi(w);if(hit)return hit}catch(e){}
- // 2. Fallback: Yahoo kann WKN, ISIN, Name oder Ticker direkt finden.
- const queries=[w,'WKN '+w];
- for(const q of queries){
-  try{
-   const qs=await yahooSearch(q);
-   const equities=qs.filter(x=>x.quoteType==='EQUITY'&&x.symbol);
-   const hit=await trySymbols(equities.map(x=>x.symbol),equities[0]?.longname||equities[0]?.shortname);
-   if(hit)return hit;
-  }catch(e){}
- }
- throw Error('WKN '+w+' konnte weltweit keinem handelbaren Aktiensymbol zugeordnet werden.');
+ onProgress?.(20,'Wertpapier wird über OpenFIGI aufgelöst …',2);
+ try{const hit=await resolveFromOpenFigi(w,()=>onProgress?.(45,'Passendes Börsen-/Yahoo-Symbol wird geprüft …',3));if(hit)return hit}catch(e){}
+ onProgress?.(50,'Alternative Symbolsuche wird durchgeführt …',3);
+ for(const q of [w,'WKN '+w]){try{const qs=await yahooSearch(q),equities=qs.filter(x=>x.quoteType==='EQUITY'&&x.symbol),hit=await trySymbols(equities.map(x=>x.symbol),equities[0]?.longname||equities[0]?.shortname,()=>onProgress?.(65,'Kursdaten werden geladen …',4));if(hit)return hit}catch(e){}}
+ throw Error('WKN '+w+' konnte weltweit keinem handelbaren Aktiensymbol zugeordnet werden.')
 }
 
 const avg=a=>a.reduce((x,y)=>x+y,0)/a.length,sma=(a,n)=>a.length<n?null:avg(a.slice(-n));
 function RSI(a,n=14){if(a.length<n+1)return 50;let g=0,l=0;for(let i=a.length-n;i<a.length;i++){let d=a[i]-a[i-1];g+=Math.max(0,d);l+=Math.max(0,-d)}return l?100-100/(1+g/l):100}
 function MACD(a){let e12,e26,s,m=[],sig=[];for(const p of a){e12=e12==null?p:p*2/13+e12*11/13;e26=e26==null?p:p*2/27+e26*25/27;const x=e12-e26;m.push(x);s=s==null?x:x*.2+s*.8;sig.push(s)}return[m,sig]}
 function st(a){const m=avg(a);return Math.sqrt(avg(a.map(x=>(x-m)**2)))}
-function analyse(){
- const c=raw.map(x=>x.c),last=c.at(-1),a20=sma(c,20),a50=sma(c,50),a200=sma(c,200),r=RSI(c),[mm,ss]=MACD(c),rets=[];
- for(let i=Math.max(1,c.length-20);i<c.length;i++)rets.push(c[i]/c[i-1]-1);
- const v=st(rets)*Math.sqrt(252)*100;let sc=50,w=[];const add=(n,t)=>{sc+=n;w.push(t)};
- last>a20?add(8,'Kurs über SMA 20.'):add(-8,'Kurs unter SMA 20.');last>a50?add(10,'Kurs über SMA 50.'):add(-10,'Kurs unter SMA 50.');last>a200?add(18,'Kurs über SMA 200 – langfristiger Trend positiv.'):add(-18,'Kurs unter SMA 200 – langfristiger Trend negativ.');r<30?add(8,'RSI unter 30 – überverkauft.'):r>70?add(-8,'RSI über 70 – überkauft.'):add(5,'RSI neutral.');mm.at(-1)>ss.at(-1)?add(8,'MACD über Signallinie – Momentum positiv.'):add(-8,'MACD unter Signallinie – Momentum negativ.');sc=Math.max(0,Math.min(100,sc));
- return{c,a20,a50,a200,r,mm,ss,v,sc,w}
-}
-function render(){
- const z=analyse(),c=z.c,last=c.at(-1),chg=(last/c.at(-2)-1)*100,rec=z.sc>=68?'KAUFEN':z.sc<=42?'NICHT KAUFEN':'BEOBACHTEN';
- $('name').textContent=nm;$('sym').textContent=sym;$('price').textContent=fmt(last);$('chg').textContent=(chg>=0?'+':'')+chg.toFixed(2)+' %';$('rsi').textContent=z.r.toFixed(1);$('rsis').textContent=z.r<30?'Überverkauft':z.r>70?'Überkauft':'Neutral';$('trend').textContent=last>z.a200?'AUFWÄRTS':'ABWÄRTS';$('trends').textContent=last>z.a50?'mittelfristig positiv':'mittelfristig negativ';$('rec').textContent=rec;$('score').textContent='Modellscore '+Math.round(z.sc)+'/100';$('bar').style.width=z.sc+'%';$('tech').textContent=Math.round(z.sc)+'/100';$('risk').textContent=z.v<20?'Niedrig':z.v<35?'Mittel':'Hoch';$('vol').textContent=z.v.toFixed(1)+' % p.a.';$('sma').textContent=[z.a20,z.a50,z.a200].map(fmt).join(' / ');$('sup').textContent=fmt(Math.min(...c.slice(-60)));$('res').textContent=fmt(Math.max(...c.slice(-60)));$('why').innerHTML=z.w.map(x=>'<li>'+x+'</li>').join('');draw(z)
-}
-function draw(z){
- const v=raw.slice(-Math.max(30,days)),a=v.map(x=>x.c),lab=v.map(x=>x.d.toLocaleDateString('de-DE'));
- if(pc)pc.destroy();pc=new Chart($('pc'),{type:'line',data:{labels:lab,datasets:[{label:'Kurs',data:a,borderWidth:2,pointRadius:0},{label:'SMA 20',data:a.map((_,i)=>i<19?null:sma(a.slice(0,i+1),20)),pointRadius:0},{label:'SMA 50',data:a.map((_,i)=>i<49?null:sma(a.slice(0,i+1),50)),pointRadius:0},{label:'SMA 200',data:a.map((_,i)=>i<199?null:sma(a.slice(0,i+1),200)),pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false}}});
- const rs=a.map((_,i)=>i<14?null:RSI(a.slice(0,i+1)));if(rc)rc.destroy();rc=new Chart($('rc'),{type:'line',data:{labels:lab,datasets:[{label:'RSI 14',data:rs,borderWidth:2,pointRadius:0},{label:'70',data:lab.map(()=>70),pointRadius:0},{label:'30',data:lab.map(()=>30),pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:100}}}});
- const[mm,ss]=MACD(a);if(mc)mc.destroy();mc=new Chart($('mc'),{type:'line',data:{labels:lab,datasets:[{label:'MACD',data:mm,borderWidth:2,pointRadius:0},{label:'Signal',data:ss,borderWidth:1,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false}})
-}
-$('form').onsubmit=async e=>{e.preventDefault();$('err').style.display='none';$('load').style.display='block';$('app').style.display='none';try{const w=$('wkn').value.trim().toUpperCase(),r=await resolve(w);nm=r.name;sym=r.symbol;raw=r.data;$('app').style.display='block';render()}catch(e){$('err').textContent=e.message;$('err').style.display='block'}finally{$('load').style.display='none'}};
+function analyse(){const c=raw.map(x=>x.c),last=c.at(-1),a20=sma(c,20),a50=sma(c,50),a200=sma(c,200),r=RSI(c),[mm,ss]=MACD(c),rets=[];for(let i=Math.max(1,c.length-20);i<c.length;i++)rets.push(c[i]/c[i-1]-1);const v=st(rets)*Math.sqrt(252)*100;let sc=50,w=[];const add=(n,t)=>{sc+=n;w.push(t)};last>a20?add(8,'Kurs über SMA 20.'):add(-8,'Kurs unter SMA 20.');last>a50?add(10,'Kurs über SMA 50.'):add(-10,'Kurs unter SMA 50.');last>a200?add(18,'Kurs über SMA 200 – langfristiger Trend positiv.'):add(-18,'Kurs unter SMA 200 – langfristiger Trend negativ.');r<30?add(8,'RSI unter 30 – überverkauft.'):r>70?add(-8,'RSI über 70 – überkauft.'):add(5,'RSI neutral.');mm.at(-1)>ss.at(-1)?add(8,'MACD über Signallinie – Momentum positiv.'):add(-8,'MACD unter Signallinie – Momentum negativ.');sc=Math.max(0,Math.min(100,sc));return{c,a20,a50,a200,r,mm,ss,v,sc,w}}
+function render(){const z=analyse(),c=z.c,last=c.at(-1),chg=(last/c.at(-2)-1)*100,rec=z.sc>=68?'KAUFEN':z.sc<=42?'NICHT KAUFEN':'BEOBACHTEN';$('name').textContent=nm;$('sym').textContent=sym;$('price').textContent=fmt(last);$('chg').textContent=(chg>=0?'+':'')+chg.toFixed(2)+' %';$('rsi').textContent=z.r.toFixed(1);$('rsis').textContent=z.r<30?'Überverkauft':z.r>70?'Überkauft':'Neutral';$('trend').textContent=last>z.a200?'AUFWÄRTS':'ABWÄRTS';$('trends').textContent=last>z.a50?'mittelfristig positiv':'mittelfristig negativ';$('rec').textContent=rec;$('score').textContent='Modellscore '+Math.round(z.sc)+'/100';$('bar').style.width=z.sc+'%';$('tech').textContent=Math.round(z.sc)+'/100';$('risk').textContent=z.v<20?'Niedrig':z.v<35?'Mittel':'Hoch';$('vol').textContent=z.v.toFixed(1)+' % p.a.';$('sma').textContent=[z.a20,z.a50,z.a200].map(fmt).join(' / ');$('sup').textContent=fmt(Math.min(...c.slice(-60)));$('res').textContent=fmt(Math.max(...c.slice(-60)));$('why').innerHTML=z.w.map(x=>'<li>'+x+'</li>').join('');draw(z)}
+function draw(z){const v=raw.slice(-Math.max(30,days)),a=v.map(x=>x.c),lab=v.map(x=>x.d.toLocaleDateString('de-DE'));if(pc)pc.destroy();pc=new Chart($('pc'),{type:'line',data:{labels:lab,datasets:[{label:'Kurs',data:a,borderWidth:2,pointRadius:0},{label:'SMA 20',data:a.map((_,i)=>i<19?null:sma(a.slice(0,i+1),20)),pointRadius:0},{label:'SMA 50',data:a.map((_,i)=>i<49?null:sma(a.slice(0,i+1),50)),pointRadius:0},{label:'SMA 200',data:a.map((_,i)=>i<199?null:sma(a.slice(0,i+1),200)),pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false}}});const rs=a.map((_,i)=>i<14?null:RSI(a.slice(0,i+1)));if(rc)rc.destroy();rc=new Chart($('rc'),{type:'line',data:{labels:lab,datasets:[{label:'RSI 14',data:rs,borderWidth:2,pointRadius:0},{label:'70',data:lab.map(()=>70),pointRadius:0},{label:'30',data:lab.map(()=>30),pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:100}}}});const[mm,ss]=MACD(a);if(mc)mc.destroy();mc=new Chart($('mc'),{type:'line',data:{labels:lab,datasets:[{label:'MACD',data:mm,borderWidth:2,pointRadius:0},{label:'Signal',data:ss,borderWidth:1,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false}})}
+
+$('form').onsubmit=async e=>{e.preventDefault();$('err').style.display='none';$('app').style.display='none';$('analyzeBtn').disabled=true;startProgress();try{const w=$('wkn').value.trim().toUpperCase();const r=await resolve(w,(p,s,step)=>setProgress(p,s,step));nm=r.name;sym=r.symbol;raw=r.data;setProgress(82,'Technische Kennzahlen werden berechnet …',5);$('app').style.display='block';render();finishProgress();}catch(e){$('err').textContent=e.message;$('err').style.display='block';$('progressStatus').textContent='Analyse konnte nicht abgeschlossen werden.';}finally{$('analyzeBtn').disabled=false;$('load').style.display='none'}};
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');days=+b.dataset.d;if(raw.length)render()});
 </script>
 </body>
