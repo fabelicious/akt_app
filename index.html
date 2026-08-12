@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>WKN Kursanalyse</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    :root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#172033;background:#f5f7fb}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1100px;margin:auto;padding:28px 18px}.hero{background:#111827;color:white;border-radius:22px;padding:28px;margin-bottom:18px}.hero h1{margin:0 0 8px;font-size:30px}.hero p{margin:0;color:#cbd5e1}.search{display:flex;gap:10px;margin-top:22px}.search input{flex:1;padding:14px 16px;border-radius:12px;border:1px solid #475569;font-size:16px;background:#1f2937;color:white}.search button{padding:14px 22px;border:0;border-radius:12px;background:#38bdf8;color:#082f49;font-weight:800;cursor:pointer}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{background:white;border:1px solid #e5e7eb;border-radius:16px;padding:18px}.label{font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:.06em}.value{font-size:23px;font-weight:800;margin-top:6px}.recommend{grid-column:span 2}.rec{font-size:30px;font-weight:900}.meter{height:10px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-top:12px}.meter span{display:block;height:100%;width:50%;background:#38bdf8}.chartbox{background:white;border:1px solid #e5e7eb;border-radius:16px;padding:18px;margin-top:12px;height:440px}.details{margin-top:12px}.details ul{margin:8px 0 0;padding-left:20px}.muted{color:#64748b}.error{background:#fee2e2;color:#991b1b;padding:14px;border-radius:12px;margin-top:12px;display:none}.loading{display:none;margin-top:12px}.footer{font-size:12px;color:#64748b;margin-top:18px}@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}.recommend{grid-column:span 2}}@media(max-width:520px){.grid{grid-template-columns:1fr}.recommend{grid-column:span 1}.search{flex-direction:column}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <h1>WKN Kursanalyse</h1>
+    <p>Technische Analyse eines Wertpapiers anhand von Kursverlauf, Trend, Momentum und Volatilität.</p>
+    <form class="search" id="form"><input id="wkn" placeholder="WKN eingeben, z. B. 710000" autocomplete="off"><button>Analysieren</button></form>
+    <div class="loading" id="loading">Daten werden geladen …</div><div class="error" id="error"></div>
+  </section>
+  <div id="result" style="display:none">
+    <div class="grid">
+      <div class="card"><div class="label">Titel</div><div class="value" id="name">–</div><div class="muted" id="symbol">–</div></div>
+      <div class="card"><div class="label">Kurs</div><div class="value" id="price">–</div><div class="muted" id="change">–</div></div>
+      <div class="card"><div class="label">RSI (14)</div><div class="value" id="rsi">–</div></div>
+      <div class="card"><div class="label">Trend</div><div class="value" id="trend">–</div></div>
+      <div class="card recommend"><div class="label">Technische Empfehlung</div><div class="rec" id="recommendation">–</div><div class="muted" id="scoreText">–</div><div class="meter"><span id="meter"></span></div></div>
+      <div class="card"><div class="label">SMA 20 / 50 / 200</div><div class="value" id="smas">–</div></div>
+    </div>
+    <div class="chartbox"><canvas id="chart"></canvas></div>
+    <div class="card details"><strong>Analyse-Signale</strong><ul id="signals"></ul></div>
+  </div>
+  <div class="footer">Hinweis: Die Empfehlung ist eine regelbasierte technische Analyse und keine Anlageberatung. Kursdaten stammen aus Yahoo Finance. Vor einer Anlageentscheidung sollten Fundamentaldaten, Kosten, Steuern und persönliche Risikotoleranz berücksichtigt werden.</div>
+</div>
+<script>
+let chart;
+const $=id=>document.getElementById(id);
+function setError(msg){$('error').textContent=msg;$('error').style.display='block'}
+function sma(a,n){return a.slice(-n).reduce((x,y)=>x+y,0)/n}
+function rsi(a,n=14){if(a.length<n+1)return null;let g=0,l=0;for(let i=a.length-n;i<a.length;i++){let d=a[i]-a[i-1];if(d>0)g+=d;else l-=d}if(l===0)return 100;return 100-100/(1+(g/n)/(l/n))}
+function ema(a,n){let k=2/(n+1),e=a[0];for(let i=1;i<a.length;i++)e=a[i]*k+e*(1-k);return e}
+async function yahooSearch(wkn){const u='https://query1.finance.yahoo.com/v1/finance/search?q='+encodeURIComponent(wkn)+'&quotesCount=10&newsCount=0';const j=await fetch(u).then(r=>r.json());return (j.quotes||[]).filter(q=>q.quoteType==='EQUITY'||q.quoteType==='ETF')}
+async function chartData(symbol){const p=Math.floor(Date.now()/1000),start=p-60*60*24*500;const u=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?period1=${start}&period2=${p}&interval=1d&events=history&includeAdjustedClose=true`;const j=await fetch(u).then(r=>r.json());if(j.chart?.error)throw Error(j.chart.error.description||'Keine Kursdaten');const r=j.chart.result?.[0];if(!r)throw Error('Keine Kursdaten gefunden');const q=r.indicators.adjclose?.[0]?.adjclose||r.indicators.quote?.[0]?.close;const t=r.timestamp||[];const pts=t.map((x,i)=>({date:new Date(x*1000),close:q[i]})).filter(x=>Number.isFinite(x.close));return {r,pts}}
+function analyze(a){const s20=sma(a,20),s50=sma(a,50),s200=sma(a,200),R=rsi(a),e12=ema(a.slice(-100),12),e26=ema(a.slice(-100),26),macd=e12-e26;let score=0,signals=[];if(a.at(-1)>s20){score+=15;signals.push('Kurs über SMA 20: kurzfristiger Aufwärtstrend.')}else{score-=15;signals.push('Kurs unter SMA 20: kurzfristiger Abwärtstrend.')}if(a.at(-1)>s50){score+=15;signals.push('Kurs über SMA 50: mittelfristig positiv.')}else{score-=15;signals.push('Kurs unter SMA 50: mittelfristig negativ.')}if(a.at(-1)>s200){score+=25;signals.push('Kurs über SMA 200: langfristiger Trend positiv.')}else{score-=25;signals.push('Kurs unter SMA 200: langfristiger Trend negativ.')}if(R!==null){if(R<30){score+=15;signals.push('RSI unter 30: überverkauft, mögliches Rebound-Signal.')}else if(R>70){score-=10;signals.push('RSI über 70: überkauft, erhöhtes Rückschlagrisiko.')}else{score+=8;signals.push('RSI im neutralen Bereich.')}}if(macd>0){score+=12;signals.push('MACD positiv: Momentum unterstützt den Trend.')}else{score-=12;signals.push('MACD negativ: Momentum belastet den Trend.')}let rec=score>=35?'KAUFEN':score<=-25?'NICHT KAUFEN':'BEOBACHTEN';return {s20,s50,s200,R,score,rec,signals}}
+$('form').addEventListener('submit',async e=>{e.preventDefault();$('error').style.display='none';$('result').style.display='none';$('loading').style.display='block';try{let w=$('wkn').value.trim();if(!/^[A-Za-z0-9.-]{3,15}$/.test(w))throw Error('Bitte eine gültige WKN eingeben.');let quotes=await yahooSearch(w);let q=quotes.find(x=>String(x.symbol||'').toUpperCase().includes(w.toUpperCase()))||quotes[0];if(!q)throw Error('WKN nicht gefunden.');let d=await chartData(q.symbol);if(d.pts.length<50)throw Error('Zu wenige Kursdaten für eine sinnvolle Analyse.');let a=d.pts.map(x=>x.close),z=analyze(a),last=a.at(-1),prev=a.at(-2),pct=(last/prev-1)*100;$('name').textContent=q.longname||q.shortname||q.symbol;$('symbol').textContent=q.exchange?`${q.symbol} · ${q.exchange}`:q.symbol;$('price').textContent=last.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});$('change').textContent=`${pct>=0?'+':''}${pct.toFixed(2)} % zum Vortag`;$('rsi').textContent=z.R==null?'–':z.R.toFixed(1);$('trend').textContent=last>z.s200?'Aufwärtstrend':'Abwärtstrend';$('recommendation').textContent=z.rec;$('scoreText').textContent=`Score ${z.score>0?'+':''}${z.score} von 100`;$('meter').style.width=Math.max(0,Math.min(100,(z.score+100)/2))+'%';$('smas').textContent=[z.s20,z.s50,z.s200].map(x=>x.toFixed(2)).join(' / ');$('signals').innerHTML=z.signals.map(x=>`<li>${x}</li>`).join('');if(chart)chart.destroy();chart=new Chart($('chart'),{type:'line',data:{labels:d.pts.map(x=>x.date.toLocaleDateString('de-DE')),datasets:[{label:q.symbol,data:a,borderWidth:2,pointRadius:0,tension:.15}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:10}},y:{beginAtZero:false}}}});$('result').style.display='block'}catch(err){setError(err.message||'Fehler beim Laden der Daten.')}finally{$('loading').style.display='none'}});
+</script>
+</body></html>
