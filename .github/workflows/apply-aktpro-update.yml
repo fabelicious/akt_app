@@ -1,0 +1,68 @@
+name: Apply AKT-Pro free background mail update
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/apply-aktpro-update.yml']
+permissions:
+  contents: write
+jobs:
+  update:
+    if: ${{ !contains(github.event.head_commit.message, 'AKT-Pro automated patch') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch application
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>','')
+          s=s.replace('🏆 Top 10 Kaufempfehlungen','🏆 Top 20 Kaufempfehlungen')
+          s=s.replace('nur Aktien mit mindestens 95/100','nur Aktien mit mindestens 95/100 · Klick öffnet die Analyse')
+          s=s.replace("const fallbackTopUniverse=['NVDA','MSFT','AAPL','AMZN','GOOGL','META','AVGO','AMD','MU','TSM','ASML','ASML.AS','SAP','ORCL','NFLX','PLTR','TSLA','INTC','QCOM','CSCO','JPM','V','MA','COST','LRCX','AMAT','ARM','SMCI','NOW','CRM','ADBE','PANW','CRWD','ANET','GE','CAT','LLY','NVO','SHOP','UBER'];", "const fallbackTopUniverse=['NVDA','MSFT','AAPL','AMZN','GOOGL','META','AVGO','AMD','MU','TSM','ASML','SAP','ORCL','NFLX','PLTR','TSLA','QCOM','CSCO','JPM','V','MA','COST','LLY','NVO','CRM','ADBE','PANW','CRWD','ANET','GE','CAT','SHOP','UBER'];")
+          s=s.replace("async function get(url){const proxies=[u=>'https://corsproxy.io/?url='+encodeURIComponent(u),u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)];let last='';for(const make of proxies){try{const r=await fetch(make(url),{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const t=await r.text();if(!t.trim())throw Error('leere Antwort');return JSON.parse(t)}catch(e){last=e.message}}throw Error(last||'Datenabruf fehlgeschlagen')}", "async function get(url){const urls=[url,'https://corsproxy.io/?url='+encodeURIComponent(url),'https://api.allorigins.win/raw?url='+encodeURIComponent(url)];let last='';for(const u of urls){try{const r=await Promise.race([fetch(u,{cache:'no-store'}),new Promise((_,rej)=>setTimeout(()=>rej(Error('Zeitüberschreitung')),8000))]);if(!r.ok)throw Error('HTTP '+r.status);const t=await r.text();if(!t.trim())throw Error('leere Antwort');return JSON.parse(t)}catch(e){last=e.message}}throw Error(last||'Datenabruf fehlgeschlagen')}")
+          s=s.replace("async function chartData(symbol,onProgress){if(onProgress)onProgress();const end=Math.floor(Date.now()/1000),start=end-60*60*24*1900", "async function chartData(symbol,onProgress){if(onProgress)onProgress();const end=Math.floor(Date.now()/1000),start=end-60*60*24*450")
+          old=re.search(r"function top10Card\(s,i\)\{.*?async function scanTop10\(\)\{.*?\n\}\n\$\('form'\)",s,re.S)
+          new=r'''function top10Card(s,i){const z=analyse(s.data),last=z.c.at(-1),prev=z.c.at(-2),chg=(last/prev-1)*100,name=s.name||s.meta?.longName||s.meta?.shortName||s.symbol;return `<div class="top10-item" data-symbol="${s.symbol}" data-name="${String(name).replace(/"/g,'&quot;')}"><div><div class="top10-rank">#${i+1}</div><div class="top10-name" title="${name}">${name}</div><div class="top10-symbol">${s.symbol}</div></div><div><div class="top10-score">${Math.round(z.sc)}/100</div><div class="top10-meta"><span>${fmt(last)}</span><span>${chg>=0?'+':''}${chg.toFixed(2)}%</span></div><div class="top10-buy">KAUFEN · 95+</div></div></div>`}
+async function scanTop10(){if(top10Busy)return;top10Busy=true;$('top10Date').textContent='Scan läuft …';$('top10Grid').innerHTML='<div class="top10-loading">Kursdaten werden geprüft …</div>';try{let quotes=[];try{const [a,b]=await Promise.all([yahooScreener('most_actives',12),yahooScreener('day_gainers',12)]);quotes=[...a,...b]}catch(e){}let symbols=uniq(quotes.filter(q=>q.quoteType==='EQUITY'||!q.quoteType).map(q=>q.symbol));symbols=uniq([...symbols,...fallbackTopUniverse]).slice(0,24);const out=[];let next=0;const worker=async()=>{while(true){const idx=next++;if(idx>=symbols.length)return;try{const p=await chartData(symbols[idx]),m=p.meta||{},s={name:m.longName||m.shortName||symbols[idx],symbol:symbols[idx],data:p.data,meta:m},z=analyse(p.data);if(z.sc>=95)out.push(s)}catch(e){}}};await Promise.all(Array.from({length:4},worker));out.sort((a,b)=>analyse(b.data).sc-analyse(a.data).sc);const top=out.slice(0,20);$('top10Date').textContent='Stand '+new Date().toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'});$('top10Grid').innerHTML=top.length?top.map(top10Card).join(''):'<div class="top10-empty">Im geprüften Universum aktuell keine Titel mit mindestens 95/100.</div>';decorateTop10()}catch(e){$('top10Date').textContent='Scan nicht verfügbar';$('top10Grid').innerHTML='<div class="top10-error">Top-20-Scan konnte nicht geladen werden. Die Einzelanalyse bleibt verfügbar.</div>'}finally{top10Busy=false}}
+$('top10Grid').addEventListener('click',e=>{const card=e.target.closest('.top10-item');if(!card)return;const symbol=card.dataset.symbol,name=card.dataset.name;const idx=stocks.findIndex(x=>x.symbol===symbol);if(idx>=0){document.querySelectorAll('.stock-group').forEach(x=>x.open=false);document.querySelectorAll('.stock-group')[idx].open=true;document.querySelectorAll('.stock-group')[idx].scrollIntoView({behavior:'smooth',block:'start'});return} (async()=>{try{$('progressWrap').style.display='block';setProgress(40,'Top-Titel wird geöffnet …',4);const p=await chartData(symbol),m=p.meta||{};stocks=[{name:name||m.longName||m.shortName||symbol,symbol,data:p.data,meta:m}];$('app').style.display='block';renderIndividuals();setProgress(100,'Analyse geöffnet.',6);$('app').scrollIntoView({behavior:'smooth',block:'start'})}catch(err){$('err').textContent='Analyse für '+symbol+' konnte nicht geladen werden: '+err.message;$('err').style.display='block'}})()});
+$('form')'''
+          if not old: raise SystemExit('Top10 block not found')
+          s=s[:old.start()]+new+s[old.end():]
+          start=s.find('<div class="alert-modal" id="markModal"')
+          if start<0: raise SystemExit('alert block not found')
+          end=s.find('</body>',start)
+          if end<0: raise SystemExit('body end not found')
+          alert=r'''<div class="alert-modal" id="markModal" aria-hidden="true"><div class="alert-dialog">
+<h3 id="markModalTitle">Titel markieren</h3><div class="muted" id="markModalMeta"></div>
+<form class="alert-form" id="markForm"><div><label for="markEmail">Empfänger-E-Mail</label><input id="markEmail" type="email" required placeholder="name@beispiel.at"></div>
+<div class="alert-checks"><label><input id="markBuy" type="checkbox" checked> KAUFEN-Mail</label><label><input id="markSell" type="checkbox" checked> NICHT KAUFEN-Mail</label></div>
+<div class="alert-warning">Für Mails bei geschlossener Seite wird kein kostenpflichtiger Maildienst verwendet. Stattdessen läuft die Prüfung über ein kostenloses Google Apps Script im Hintergrund.</div>
+<div class="alert-dialog-actions"><button type="button" class="alert-btn" id="markCancel">Abbrechen</button><button type="button" class="alert-btn" id="markRemove">Markierung entfernen</button><button class="alert-btn primary" type="submit">Markieren & speichern</button></div></form></div></div>
+<div class="alert-modal" id="mailModal" aria-hidden="true"><div class="alert-dialog"><h3>⚙️ Hintergrund-Mail konfigurieren</h3><div class="muted">Einmalig die URL deiner Google-Apps-Script-Web-App eintragen. Danach prüft der Dienst automatisch alle 15 Minuten – auch wenn diese Seite geschlossen ist.</div>
+<form class="alert-form" id="mailForm"><div><label for="scriptUrl">Apps-Script-Web-App-URL</label><input id="scriptUrl" type="url" required placeholder="https://script.google.com/macros/s/.../exec"></div>
+<div class="alert-warning">Die Anwendung selbst bleibt vollständig kostenlos. Das Hintergrund-Script verwendet Google MailApp; bei privaten Google-Konten gelten die kostenlosen Google-Kontingente.</div><div class="alert-status" id="mailStatus"></div>
+<div class="alert-dialog-actions"><button type="button" class="alert-btn" id="mailCancel">Abbrechen</button><button type="button" class="alert-btn" id="mailTest">Verbindung testen</button><button class="alert-btn primary" type="submit">Speichern</button></div></form></div></div>
+<script>
+(()=>{const WATCH_KEY='aktpro_watchlist_v2',SCRIPT_KEY='aktpro_script_url_v1';const readWatch=()=>{try{return JSON.parse(localStorage.getItem(WATCH_KEY)||'{}')}catch(e){return {}}};const writeWatch=w=>localStorage.setItem(WATCH_KEY,JSON.stringify(w));const readUrl=()=>localStorage.getItem(SCRIPT_KEY)||'';const writeUrl=u=>localStorage.setItem(SCRIPT_KEY,u.trim());let modalKey=null,modalMeta=null;const el=id=>document.getElementById(id);function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function syncButtons(){const w=readWatch();document.querySelectorAll('.watch-btn').forEach(b=>{const key=b.closest('.top10-item')?.dataset.symbol||b.closest('.stock-group')?.querySelector('.summary-symbol')?.textContent.trim();b.classList.toggle('marked',!!w[key]);b.textContent= w[key]?'🔔 Markiert':'🔔 Markieren'});document.querySelectorAll('.top10-item').forEach(c=>c.classList.toggle('marked',!!w[c.dataset.symbol]))}
+function openMark(key,name,symbol,score){modalKey=key;modalMeta={name,symbol,score};const w=readWatch()[key]||{};el('markModalTitle').textContent=(w?'Markierung bearbeiten: ':'Titel markieren: ')+name;el('markModalMeta').textContent=symbol+' · aktueller Score '+(score||'–')+'/100';el('markEmail').value=w.email||'';el('markBuy').checked=w.buy!==false;el('markSell').checked=w.sell!==false;el('markRemove').style.display=w?'inline-flex':'none';el('markModal').classList.add('show')}
+function renderWatch(){const w=readWatch(),keys=Object.keys(w),p=el('watchListPanel'),box=el('watchList');if(!keys.length){p.style.display='none';box.innerHTML='';return}p.style.display='block';box.innerHTML=keys.map(k=>{const x=w[k];return '<div class="watch-row"><div><div class="watch-name">'+esc(x.name||k)+'</div><div class="watch-meta">'+esc(k)+' · '+esc(x.email||'')+'</div></div><div class="watch-state '+(x.lastRec==='KAUFEN'?'buy':x.lastRec==='NICHT KAUFEN'?'no':'watch')+'">'+esc(x.lastRec||'noch nicht geprüft')+'</div></div>'}).join('')}
+async function syncBackground(){const url=readUrl();if(!url)return;try{await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'sync',watchlist:readWatch(),source:'AKT-Pro by fab',updatedAt:new Date().toISOString()})});if(el('mailStatus'))el('mailStatus').textContent='Beobachtungsliste übertragen.'}catch(e){if(el('mailStatus'))el('mailStatus').textContent='Übertragung fehlgeschlagen: '+e.message}}
+el('markForm')?.addEventListener('submit',e=>{e.preventDefault();const w=readWatch(),old=w[modalKey]||{};const score=Number(modalMeta.score)||0;w[modalKey]={...old,key:modalKey,name:modalMeta.name,symbol:modalMeta.symbol,email:el('markEmail').value.trim(),buy:el('markBuy').checked,sell:el('markSell').checked,lastRec:old.lastRec||(score>=68?'KAUFEN':score<=42?'NICHT KAUFEN':'BEOBACHTEN'),createdAt:old.createdAt||new Date().toISOString()};writeWatch(w);el('markModal').classList.remove('show');renderWatch();syncButtons();syncBackground()});el('markRemove')?.addEventListener('click',()=>{const w=readWatch();delete w[modalKey];writeWatch(w);el('markModal').classList.remove('show');renderWatch();syncButtons();syncBackground()});el('markCancel')?.addEventListener('click',()=>el('markModal').classList.remove('show'));
+el('mailSettingsBtn')?.addEventListener('click',()=>{el('scriptUrl').value=readUrl();el('mailStatus').textContent='';el('mailModal').classList.add('show')});el('mailCancel')?.addEventListener('click',()=>el('mailModal').classList.remove('show'));el('mailForm')?.addEventListener('submit',e=>{e.preventDefault();writeUrl(el('scriptUrl').value);el('mailStatus').textContent='URL gespeichert.';syncBackground()});el('mailTest')?.addEventListener('click',()=>{writeUrl(el('scriptUrl').value);syncBackground()});el('watchListBtn')?.addEventListener('click',()=>{renderWatch();const p=el('watchListPanel');p.style.display=p.style.display==='none'?'block':'none'});
+document.addEventListener('click',e=>{const b=e.target.closest('.watch-btn');if(!b)return;e.preventDefault();e.stopPropagation();const key=b.closest('.top10-item')?.dataset.symbol||b.closest('.stock-group')?.querySelector('.summary-symbol')?.textContent.trim();const g=b.closest('.stock-group'),name=b.closest('.top10-item')?.dataset.name||g?.querySelector('.summary-name')?.textContent.trim()||key,score=Number((b.closest('.top10-item')?.querySelector('.top10-score')?.textContent||g?.querySelector('.summary-result')?.textContent||'').match(/[0-9]+/)?.[0]||0);openMark(key,name,key,score)});
+const obs=new MutationObserver(()=>syncButtons());obs.observe(el('top10Grid'),{childList:true,subtree:true});obs.observe(el('individuals'),{childList:true,subtree:true});renderWatch();syncButtons();if(readUrl())setTimeout(syncBackground,1500)})();
+</script>'''
+          s=s[:start]+alert+"\n"+s[end:]
+          p.write_text(s,encoding='utf-8')
+      - name: Commit patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'AKT-Pro automated patch' || exit 0
+          git push
