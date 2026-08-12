@@ -1,6 +1,5 @@
 name: Refresh fast Top 10 cache
 
-# Free cache refresh: the browser never scans dozens of stocks on page load.
 on:
   workflow_dispatch:
   schedule:
@@ -12,7 +11,6 @@ on:
 permissions:
   contents: write
 
-# Prevent two Top 10 refreshes from racing each other.
 concurrency:
   group: refresh-top10
   cancel-in-progress: false
@@ -63,25 +61,29 @@ jobs:
           with ThreadPoolExecutor(max_workers=8) as ex:
               for f in as_completed([ex.submit(fetch,s) for s in symbols]):
                   x=f.result()
-                  if x and x['score']>=90: out.append(x)
+                  if x: out.append(x)
           out.sort(key=lambda x:(-x['score'],x['symbol']))
-          Path('top10.json').write_text(json.dumps({'generatedAt':datetime.now(timezone.utc).isoformat(),'criteria':'>=90/100','items':out[:10]},ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+          Path('top10.json').write_text(json.dumps({'generatedAt':datetime.now(timezone.utc).isoformat(),'criteria':'>=90/100','items':[x for x in out if x['score']>=90][:10]},ensure_ascii=False,separators=(',',':')),encoding='utf-8')
 
-      - name: Commit and publish cache safely
+      - name: Make Top 10 loading resilient
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          start=s.index('async function scanTop10(){')
+          end=s.index("$('form').onsubmit=", start)
+          fn="""async function scanTop10(){if(top10Busy)return;top10Busy=true;$('top10Date').textContent='Aktuelle Daten werden geladen …';$('top10Grid').innerHTML='<div class=\\"top10-loading\\">Top 10 wird aktualisiert …</div>';const sources=['https://fabelicious.github.io/akt_app/top10.json?ts='+Date.now(),'https://raw.githubusercontent.com/fabelicious/akt_app/main/top10.json?ts='+Date.now(),'./top10.json?ts='+Date.now()];let j=null,last='';for(const u of sources){try{const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);j=await r.json();if(j&&Array.isArray(j.items))break}catch(e){last=e.message}}try{if(!j)throw Error(last||'Top-10-Daten nicht erreichbar');localStorage.setItem('aktpro_top10_cache',JSON.stringify(j));const out=(j.items||[]).filter(x=>Number(x.score)>=90).sort((a,b)=>Number(b.score)-Number(a.score)).slice(0,10);$('top10Date').textContent=j.generatedAt?'Stand '+new Date(j.generatedAt).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'Aktuell';$('top10Grid').innerHTML=out.length?out.map(top10Card).join(''):'<div class=\\"top10-empty\\">Aktuell keine Treffer ≥90/100.</div>'}catch(e){try{const old=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null'),out=(old?.items||[]).filter(x=>Number(x.score)>=90).slice(0,10);if(out.length){$('top10Date').textContent='letzter verfügbarer Stand';$('top10Grid').innerHTML=out.map(top10Card).join('')}else throw e}catch(_){$('top10Date').textContent='Fehler';$('top10Grid').innerHTML='<div class=\\"top10-empty\\">Top-10-Daten konnten nicht geladen werden. Bitte Internetverbindung prüfen.</div>'}}finally{top10Busy=false}}\n"""
+          p.write_text(s[:start]+fn+s[end:],encoding='utf-8')
+
+      - name: Commit and publish cache
         shell: bash
         run: |
-          set -e
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add top10.json
-          if git diff --cached --quiet; then
-            echo "Top 10 cache unchanged"
-            exit 0
-          fi
-          git commit -m "Refresh Top 10 cache at 90 score threshold"
-
-          # Another workflow may have updated main while this job was running.
-          # Rebase our generated cache commit onto the current remote main.
-          git fetch origin main
-          git rebase origin/main
+          git add top10.json index.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Refresh live Top 10 data"
+          git pull --rebase origin main
           git push origin HEAD:main
