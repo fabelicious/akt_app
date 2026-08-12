@@ -1,7 +1,7 @@
 (function(){
 let longHistory=false;
 const nativeFetch=window.fetch.bind(window);
-function shrink(u){try{if(longHistory)return u;const isYahoo=u.includes('query1.finance.yahoo.com/v8/finance/chart/');if(isYahoo){const z=new URL(u);z.searchParams.set('period1',String(Math.floor(Date.now()/1000)-60*60*24*420));return z.toString()}const p=new URL(u);const target=p.searchParams.get('url');if(target&&target.includes('query1.finance.yahoo.com/v8/finance/chart/')){const z=new URL(target);z.searchParams.set('period1',String(Math.floor(Date.now()/1000)-60*60*24*420));p.searchParams.set('url',z.toString());return p.toString()}}catch(_){}return u}
+function shrink(u){try{if(longHistory)return u;const isYahoo=u.includes('query1.finance.yahoo.com/v8/finance/chart/');if(isYahoo){const z=new URL(u);z.searchParams.set('period1',String(Math.floor(Date.now()/1000)-60*60*24*420));return z.toString()}const p=new URL(u);const target=p.searchParams.get('url');if(target&&target.includes('query1.finance.yahoo.com/v8/finance/chart/')){const z=new URL(target);z.searchParams.set('period1',String(Math.floor(Date.now()/1000)-60*60*24*420));p.searchParams.set('url',z.toString())}}catch(_){}return u}
 window.fetch=function(input,init){try{let u=typeof input==='string'?input:input.url;u=shrink(u);if(typeof input==='string')input=u;else input=new Request(u,input)}catch(_){}return nativeFetch(input,init)};
 document.addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)longHistory=b.dataset.d==='1825'});
 const suggestionCache=new Map();
@@ -23,36 +23,14 @@ function top10Detail(x,i){const score=Number(x.score)||0,name=x.name||x.symbol,w
 async function loadDetail(d){if(d.dataset.loaded==='1')return;d.dataset.loaded='1';const body=d.querySelector('.top10-detail-body'),sym=d.dataset.symbol;try{const hit=await trySymbols([sym],d.querySelector('.top10-name')?.textContent||sym);if(!hit)throw Error('Keine Kursdaten verfügbar');const temp=document.createElement('div');temp.innerHTML=stockMarkup(hit,Math.floor(Math.random()*100000));const detail=temp.querySelector('.stock-group');if(!detail)throw Error('Detailanalyse konnte nicht erstellt werden');detail.open=true;body.innerHTML='';body.appendChild(detail);const idx=Number(detail.querySelector('canvas')?.id?.match(/-(\d+)$/)?.[1]);drawStockCharts(hit,idx)}catch(e){d.dataset.loaded='0';body.innerHTML='<div class="top10-detail-error">Detailanalyse konnte nicht geladen werden. '+esc(e.message)+'</div>'}}
 window.renderTop10Enhanced=function(j){const out=(j.items||[]).filter(x=>Number(x.score)>=90).sort((a,b)=>Number(b.score)-Number(a.score)).slice(0,10),grid=document.getElementById('top10Grid');if(!grid)return;grid.innerHTML=out.length?out.map(top10Detail).join(''):'<div class="top10-empty">Aktuell keine Treffer ≥90/100.</div>';grid.querySelectorAll('.top10-detail').forEach(d=>d.addEventListener('toggle',()=>{if(d.open)loadDetail(d)}));grid.querySelectorAll('.wkn-copy').forEach(b=>b.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();const w=b.dataset.wkn;if(!w)return;try{await navigator.clipboard.writeText(w);const old=b.textContent;b.textContent='kopiert ✓';setTimeout(()=>b.textContent=old,1000)}catch(_){}}))};
 function installStyles(){const s=document.createElement('style');s.textContent=`.stock-suggestions{display:none;position:absolute;z-index:99999;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid #cbd5e1;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);overflow:hidden}.stock-suggestion{display:flex;flex-direction:column;width:100%;text-align:left;border:0;background:#fff;padding:11px 12px;cursor:pointer;color:#172033;position:relative;z-index:100000}.stock-suggestion:hover,.stock-suggestion:focus{background:#f1f5f9;outline:0}.stock-suggestion span{font-size:11px;color:#64748b;margin-top:2px}.top10-detail{grid-column:span 1;background:#1f2937;border:1px solid #374151;border-radius:12px;overflow:hidden}.top10-detail summary{list-style:none;cursor:pointer;padding:12px;display:grid;grid-template-columns:20px 28px 1fr auto;gap:4px 7px;align-items:center}.top10-detail summary::-webkit-details-marker{display:none}.top10-plus{font-size:24px;font-weight:800;line-height:1}.top10-detail[open] .top10-plus{transform:rotate(45deg)}.top10-detail .top10-rank{grid-column:2}.top10-detail .top10-name{grid-column:3}.top10-detail .top10-symbol{grid-column:3;font-size:11px;color:#94a3b8}.top10-detail .top10-wkn{grid-column:3;font-size:11px;color:#cbd5e1}.top10-detail .top10-score{grid-column:4;grid-row:1 / span 3}.top10-detail-body{padding:0 10px 10px;border-top:1px solid #374151}.top10-detail-loading,.top10-detail-error{padding:14px;color:#94a3b8;font-size:12px}.top10-detail-error{color:#fca5a5}.top10-detail-body .stock-group{border:0;border-radius:0;background:transparent}.top10-detail-body .stock-group summary{background:#fff;color:#172033;border-radius:10px;margin-top:10px}.top10-detail-body .stock-body{background:#fff;border-radius:0 0 10px 10px}@media(max-width:750px){.top10-detail summary{grid-template-columns:20px 25px 1fr auto}}`;document.head.appendChild(s)}
-function patchScan(){const original=window.scanTop10;if(typeof original!=='function')return setTimeout(patchScan,100);if(original.__enhanced)return;window.scanTop10=async function(){try{const cached=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null');if(cached&&cached.generatedAt&&Date.now()-new Date(cached.generatedAt).getTime()<15*60*1000)renderTop10Enhanced(cached)}catch(_){}await original();try{const j=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null');if(j)renderTop10Enhanced(j)}catch(_){}};window.scanTop10.__enhanced=true;try{const j=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null');if(j)renderTop10Enhanced(j)}catch(_){} }
-function init(){installStyles();['wkn1','wkn2','wkn3'].forEach(setupInput);patchScan()}
+function setTop10Date(date){const el=document.getElementById('top10Date');if(!el)return;const d=new Date(date);if(Number.isFinite(d.getTime()))el.textContent='Aktualisiert: '+d.toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'});}
+function markFreshScan(){
+  const now=new Date().toISOString();
+  try{const j=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null');if(j){j.generatedAt=now;localStorage.setItem('aktpro_top10_cache',JSON.stringify(j));setTop10Date(now)}}catch(_){setTop10Date(now)}
+  setTop10Date(now);
+}
+function patchScan(){const original=window.scanTop10;if(typeof original!=='function')return setTimeout(patchScan,100);if(original.__enhanced)return;window.scanTop10=async function(){const dateEl=document.getElementById('top10Date');if(dateEl)dateEl.textContent='Aktualisiere …';try{const cached=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null');if(cached&&cached.generatedAt&&Date.now()-new Date(cached.generatedAt).getTime()<15*60*1000)renderTop10Enhanced(cached)}catch(_){}try{await original()}finally{try{const fresh=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null');if(fresh)renderTop10Enhanced(fresh)}catch(_){}markFreshScan()}};window.scanTop10.__enhanced=true;try{const j=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null');if(j)renderTop10Enhanced(j)}catch(_){} }
+function refreshTop10OnReload(){const el=document.getElementById('top10Date');if(el)el.textContent='Aktualisiere …';const run=()=>{if(typeof window.scanTop10==='function'){window.scanTop10()}else setTimeout(run,150)};setTimeout(run,80)}
+function init(){installStyles();['wkn1','wkn2','wkn3'].forEach(setupInput);patchScan();setTimeout(refreshTop10OnReload,120)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-})();
-
-/* Always refresh the Top 10 after a browser reload and show the actual scan time. */
-(function(){
-  function refreshTop10OnReload(){
-    const dateEl=document.getElementById('top10Date');
-    if(dateEl){dateEl.textContent='Aktualisiere …';}
-    const run=()=>{
-      if(typeof window.scanTop10==='function'){
-        try{ window.scanTop10(); }catch(_){ }
-      }else if(document.readyState!=='complete'){
-        setTimeout(run,150);
-      }
-    };
-    setTimeout(run,80);
-  }
-  function updateDate(){
-    const dateEl=document.getElementById('top10Date');
-    if(!dateEl)return;
-    try{
-      const j=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null');
-      if(j&&j.generatedAt){
-        const d=new Date(j.generatedAt);
-        if(!Number.isNaN(d.getTime())) dateEl.textContent='Aktualisiert: '+d.toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'});
-      }
-    }catch(_){ }
-  }
-  window.addEventListener('pageshow',function(){refreshTop10OnReload();setTimeout(updateDate,1200)});
-  document.addEventListener('DOMContentLoaded',function(){setTimeout(updateDate,1000)});
 })();
