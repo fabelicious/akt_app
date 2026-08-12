@@ -19,11 +19,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build fast Top 10 cache and patch browser scan
+      - name: Build fast Top 10 cache
         shell: python
         run: |
           from pathlib import Path
-          import json, math, re, urllib.parse, urllib.request
+          import json, math, urllib.parse, urllib.request
           from concurrent.futures import ThreadPoolExecutor, as_completed
           from datetime import datetime, timezone
 
@@ -49,26 +49,21 @@ jobs:
                   close=[x for x in z.get('indicators',{}).get('quote',[{}])[0].get('close',[]) if isinstance(x,(int,float)) and math.isfinite(x)]
                   if len(close)<200:return None
                   s,n,rr=score(close); meta=z.get('meta',{})
-                  return {'name':meta.get('longName') or meta.get('shortName') or sym,'symbol':sym,'score':round(s,2),'price':n,'rsi':round(rr,1)}
+                  prev=close[-2] if len(close)>1 else n
+                  return {'name':meta.get('longName') or meta.get('shortName') or sym,'symbol':sym,'score':round(s,2),'price':n,'change':round((n/prev-1)*100,2),'rsi':round(rr,1)}
               except Exception:return None
           out=[]
           with ThreadPoolExecutor(max_workers=8) as ex:
               for f in as_completed([ex.submit(fetch,s) for s in symbols]):
                   x=f.result()
-                  if x and x['score']>=95: out.append(x)
+                  if x and x['score']>=90: out.append(x)
           out.sort(key=lambda x:(-x['score'],x['symbol']))
-          Path('top10.json').write_text(json.dumps({'generatedAt':datetime.now(timezone.utc).isoformat(),'criteria':'>=95/100','items':out[:10]},ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+          Path('top10.json').write_text(json.dumps({'generatedAt':datetime.now(timezone.utc).isoformat(),'criteria':'>=90/100','items':out[:10]},ensure_ascii=False,separators=(',',':')),encoding='utf-8')
 
-          p=Path('index.html'); s=p.read_text(encoding='utf-8')
-          new_scan=r'''async function scan(){if(topBusy)return;topBusy=true;topgrid.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;padding:12px">Top 10 wird aus dem kostenlosen Schnell-Cache geladen …</div>';try{const r=await fetch('./top10.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('Top-10-Cache noch nicht verfügbar');const j=await r.json(),out=(j.items||[]).filter(x=>Number(x.score)>=95).slice(0,10);localStorage.setItem('aktpro_top10_cache',JSON.stringify(j));topgrid.innerHTML=out.map((x,i)=>`<div class="topcard" data-symbol="${x.symbol}" data-name="${String(x.name||x.symbol).replace(/"/g,'')}"><div class="rank">#${i+1}</div><div class="name">${x.name||x.symbol}</div><div class="sym">${x.symbol}</div><div class="score">${Math.round(x.score)}/100</div><div class="buy">KAUFEN</div></div>`).join('')||'<div class="muted" style="grid-column:1/-1;text-align:center;padding:12px">Aktuell keine Treffer ≥95/100.</div>';topdate.textContent=j.generatedAt?new Date(j.generatedAt).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''}catch(e){try{const j=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null'),out=(j?.items||[]).filter(x=>Number(x.score)>=95).slice(0,10);if(out.length){topgrid.innerHTML=out.map((x,i)=>`<div class="topcard" data-symbol="${x.symbol}" data-name="${String(x.name||x.symbol).replace(/"/g,'')}"><div class="rank">#${i+1}</div><div class="name">${x.name||x.symbol}</div><div class="sym">${x.symbol}</div><div class="score">${Math.round(x.score)}/100</div><div class="buy">KAUFEN</div></div>`).join('');topdate.textContent='letzter gespeicherter Stand'}else{topgrid.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;padding:12px">Top 10 wird gerade kostenlos im Hintergrund vorbereitet. Bitte Seite kurz neu laden.</div>'}}catch(_){topgrid.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center;padding:12px">Top 10 wird gerade vorbereitet. Bitte Seite kurz neu laden.</div>'}}finally{topBusy=false;syncButtons()}}'''
-          s2,n=re.subn(r'async function scan\(\)\{.*?\}\nform\.onsubmit=',new_scan+'\nform.onsubmit=',s,count=1,flags=re.S)
-          if n:s=s2
-          s=s.replace('🏆 Top 20 Kaufempfehlungen','🏆 Top 10 Kaufempfehlungen',1)
-          p.write_text(s,encoding='utf-8')
-      - name: Commit cache and optimization
+      - name: Commit cache
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add top10.json index.html
-          git diff --cached --quiet || git commit -m "Speed up Top 10 with free cached data"
+          git add top10.json
+          git diff --cached --quiet || git commit -m "Refresh Top 10 cache at 90 score threshold"
           git push
