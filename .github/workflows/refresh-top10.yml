@@ -33,6 +33,7 @@ jobs:
           from datetime import datetime, timezone
 
           symbols = ['NVDA','MSFT','AAPL','AMZN','GOOGL','META','AVGO','AMD','MU','TSM','ASML','SAP','ORCL','NFLX','PLTR','TSLA','QCOM','CSCO','JPM','V','MA','COST','LLY','NVO','CRM','ADBE','PANW','CRWD','ANET','GE','CAT','SHOP','UBER']
+          wkns = {'NVDA':'918422','MSFT':'870747','AAPL':'865985','AMZN':'906866','GOOGL':'A14Y6F','META':'A1JWVX','AVGO':'A2JG9Z','AMD':'863186','MU':'869020','TSM':'909800','ASML':'A1J4U4','SAP':'716460','ORCL':'871460','NFLX':'552484','PLTR':'A2QA4J','TSLA':'A1CX3T','QCOM':'883121','CSCO':'878841','JPM':'850628','V':'A2J7M9','MA':'A0F6L9','COST':'888351','LLY':'858560','NVO':'A3EU6F','CRM':'A0B87V','ADBE':'871981','PANW':'A1JZ0Q','CRWD':'A2PK2R','ANET':'A11099','GE':'A3CSML','CAT':'850598','SHOP':'A14TJP','UBER':'A2PHHG'}
 
           def avg(a): return sum(a) / len(a) if a else 0
           def rsi(a):
@@ -42,8 +43,21 @@ jobs:
                   d=a[i]-a[i-1]; g+=max(d,0); l+=max(-d,0)
               return 100-100/(1+g/l) if l else 100
           def score(close):
+              # Must match the detailed analysis in index.html exactly:
+              # SMA20 +8, SMA50 +10, SMA200 +18, RSI neutral +5, MACD +8.
               n=close[-1]; a20=avg(close[-20:]); a50=avg(close[-50:]); a200=avg(close[-200:]); rr=rsi(close)
-              s=50+(8 if n>a20 else -8)+(10 if n>a50 else -10)+(18 if n>a200 else -18)+(8 if rr<30 else -8 if rr>70 else 5)
+              if n>a20: s=58
+              else: s=42
+              s += 10 if n>a50 else -10
+              s += 18 if n>a200 else -18
+              s += 8 if rr<30 else -8 if rr>70 else 5
+              # MACD calculation identical to index.html
+              e12=e26=sg=None; mm=[]; ss=[]
+              for p in close:
+                  e12=p if e12 is None else p*2/13+e12*11/13
+                  e26=p if e26 is None else p*2/27+e26*25/27
+                  x=e12-e26; mm.append(x); sg=x if sg is None else x*.2+sg*.8; ss.append(sg)
+              s += 8 if mm[-1]>ss[-1] else -8
               return max(0,min(100,s)),n,rr
           def fetch(sym):
               try:
@@ -53,9 +67,8 @@ jobs:
                   if not z:return None
                   close=[x for x in z.get('indicators',{}).get('quote',[{}])[0].get('close',[]) if isinstance(x,(int,float)) and math.isfinite(x)]
                   if len(close)<200:return None
-                  s,n,rr=score(close); meta=z.get('meta',{})
-                  prev=close[-2] if len(close)>1 else n
-                  return {'name':meta.get('longName') or meta.get('shortName') or sym,'symbol':sym,'score':round(s,2),'price':n,'change':round((n/prev-1)*100,2),'rsi':round(rr,1)}
+                  s,n,rr=score(close); meta=z.get('meta',{}); prev=close[-2] if len(close)>1 else n
+                  return {'name':meta.get('longName') or meta.get('shortName') or sym,'symbol':sym,'wkn':wkns.get(sym,''),'score':round(s,2),'price':n,'change':round((n/prev-1)*100,2),'rsi':round(rr,1)}
               except Exception:return None
           out=[]
           with ThreadPoolExecutor(max_workers=8) as ex:
@@ -69,7 +82,6 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
-          import re
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
           start=s.index('async function scanTop10(){')
