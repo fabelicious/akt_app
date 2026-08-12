@@ -3,6 +3,7 @@
   const getEl=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
   const cache=new Map();
+  const selected=new Map();
   const local=[
     ['a11099','Arista Networks, Inc.','ANET','A11099'],
     ['arista','Arista Networks, Inc.','ANET','A11099'],
@@ -57,7 +58,9 @@
     let seq=0;
     const render=rows=>{box._rows=rows;box.innerHTML=rows.map((r,i)=>'<button type="button" class="dynamic-stock-suggestion" data-i="'+i+'"><b>'+esc(r[1])+'</b><span>'+esc(r[2])+(r[3]?' · WKN '+esc(r[3]):' · Aktie')+'</span></button>').join('');box.style.display=rows.length?'block':'none'};
     input.addEventListener('input',async()=>{
-      const q=input.value.trim();input.dataset.selectedSymbol='';input.dataset.selectedWkn='';
+      const q=input.value.trim();
+      selected.delete(q.toUpperCase());
+      input.dataset.selectedSymbol='';input.dataset.selectedWkn='';
       if(!q){box.style.display='none';return;}
       const n=++seq;render(localMatches(q));
       if(q.length<2)return;
@@ -69,12 +72,38 @@
     box.addEventListener('pointerdown',e=>{
       const b=e.target.closest('button');if(!b)return;e.preventDefault();
       const r=box._rows?.[Number(b.dataset.i)];if(!r)return;
-      input.value=r[3]||r[2];input.dataset.selectedSymbol=r[2]||'';input.dataset.selectedWkn=r[3]||'';input.dataset.selectedName=r[1]||'';box.style.display='none';
-      input.dispatchEvent(new Event('change',{bubbles:true}));input.dispatchEvent(new Event('input',{bubbles:true}));
+      const value=(r[3]||r[2]||'').toUpperCase();
+      input.value=value;
+      input.dataset.selectedSymbol=(r[2]||'').toUpperCase();
+      input.dataset.selectedWkn=(r[3]||'').toUpperCase();
+      input.dataset.selectedName=r[1]||'';
+      if(value) selected.set(value,{symbol:(r[2]||'').toUpperCase(),wkn:(r[3]||'').toUpperCase(),name:r[1]||''});
+      box.style.display='none';
+      input.dispatchEvent(new Event('change',{bubbles:true}));
     });
     input.addEventListener('keydown',e=>{if(e.key==='Escape')box.style.display='none';});
     input.addEventListener('blur',()=>setTimeout(()=>box.style.display='none',180));
   }
-  function init(){['wkn1','wkn2','wkn3'].forEach(id=>setup(getEl(id)));}
+  function init(){['wkn1','wkn2','wkn3'].forEach(id=>setup(getEl(id)));
+    // The main app normally resolves a 6-character WKN. When the user selected
+    // a Yahoo result without a WKN, use that verified ticker directly instead.
+    const original=window.resolve;
+    if(typeof original==='function' && !window.__aktAutocompleteResolvePatched){
+      window.__aktAutocompleteResolvePatched=true;
+      window.resolve=async function(value,onProgress){
+        const hit=selected.get(String(value||'').trim().toUpperCase());
+        if(hit && hit.symbol){
+          onProgress?.(20,'Ausgewählter Titel wird übernommen …',2);
+          try{
+            const p=await window.chartData(hit.symbol,()=>onProgress?.(65,'Kursdaten werden geladen …',4));
+            return {name:hit.name||p.meta?.longName||p.meta?.shortName||hit.symbol,symbol:hit.symbol,data:p.data,meta:p.meta||{}};
+          }catch(e){
+            // Fall back to the normal WKN resolver if the selected ticker fails.
+          }
+        }
+        return original(value,onProgress);
+      };
+    }
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
