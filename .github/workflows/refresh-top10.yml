@@ -84,21 +84,21 @@ jobs:
           card="""function top10Card(x,i){const score=Number(x.score)||0,last=Number(x.price)||0,name=x.name||x.symbol,wkn=x.wkn||'nicht hinterlegt',chg=x.change==null?'':((Number(x.change)||0).toFixed(2)+'%');return `<div class=\\"top10-item\\"><div><div class=\\"top10-rank\\">#${i+1}</div><div class=\\"top10-name\\" title=\\"${name}\\">${name}</div><div class=\\"top10-symbol\\">${x.symbol}</div><div class=\\"top10-wkn\\">WKN: <button type=\\"button\\" class=\\"wkn-copy\\" data-wkn=\\"${wkn}\\" title=\\"WKN kopieren\\">${wkn}</button></div></div><div><div class=\\"top10-score\\">${Math.round(score)}/100</div><div class=\\"top10-meta\\"><span>${last?fmt(last):''}</span><span>${chg}</span></div><div class=\\"top10-buy\\">KAUFEN · 90+ erreicht</div></div></div>`}\n"""
           s=s[:cs]+card+s[ce:]
           s=s.replace('.top10-symbol{font-size:11px;color:#94a3b8}', '.top10-symbol{font-size:11px;color:#94a3b8}.top10-wkn{font-size:11px;color:#cbd5e1;margin-top:4px}.wkn-copy{border:0;background:transparent;color:#fff;padding:0;font:inherit;font-size:11px;font-weight:800;cursor:pointer;text-decoration:underline;text-underline-offset:2px}')
-          marker="scanTop10();\n"
-          handler="""document.addEventListener('click',async e=>{const b=e.target.closest('.wkn-copy');if(!b)return;const w=b.dataset.wkn;if(!w||w==='nicht hinterlegt')return;try{await navigator.clipboard.writeText(w);const old=b.textContent;b.textContent='kopiert ✓';setTimeout(()=>b.textContent=old,1200)}catch(_){const ta=document.createElement('textarea');ta.value=w;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();const old=b.textContent;b.textContent='kopiert ✓';setTimeout(()=>b.textContent=old,1200)}});\nscanTop10();\n"""
-          s=s.replace(marker,handler,1)
           start=s.index('async function scanTop10(){')
           end=s.index("$('form').onsubmit=", start)
           fn="""async function scanTop10(){if(top10Busy)return;top10Busy=true;$('top10Date').textContent='Aktuelle Daten werden geladen …';$('top10Grid').innerHTML='<div class=\\"top10-loading\\">Top 10 wird aktualisiert …</div>';const sources=['https://fabelicious.github.io/akt_app/top10.json?ts='+Date.now(),'https://raw.githubusercontent.com/fabelicious/akt_app/main/top10.json?ts='+Date.now(),'./top10.json?ts='+Date.now()];let j=null,last='';for(const u of sources){try{const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);j=await r.json();if(j&&Array.isArray(j.items))break}catch(e){last=e.message}}try{if(!j)throw Error(last||'Top-10-Daten nicht erreichbar');localStorage.setItem('aktpro_top10_cache',JSON.stringify(j));const out=(j.items||[]).filter(x=>Number(x.score)>=90).sort((a,b)=>Number(b.score)-Number(a.score)).slice(0,10);$('top10Date').textContent=j.generatedAt?'Stand '+new Date(j.generatedAt).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'Aktuell';$('top10Grid').innerHTML=out.length?out.map(top10Card).join(''):'<div class=\\"top10-empty\\">Aktuell keine Treffer ≥90/100.</div>'}catch(e){try{const old=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null'),out=(old?.items||[]).filter(x=>Number(x.score)>=90).slice(0,10);if(out.length){$('top10Date').textContent='letzter verfügbarer Stand';$('top10Grid').innerHTML=out.map(top10Card).join('')}else throw e}catch(_){$('top10Date').textContent='Fehler';$('top10Grid').innerHTML='<div class=\\"top10-empty\\">Top-10-Daten konnten nicht geladen werden. Bitte Internetverbindung prüfen.</div>'}}finally{top10Busy=false}}\n"""
-          p.write_text(s[:start]+fn+s[end:],encoding='utf-8')
+          s=s[:start]+fn+s[end:]
+          inject='<script src="./enhancements.js?v='+str(__import__('time').time_ns())+'"></script>\n'
+          s=s.replace('</body>',inject+'</body>')
+          p.write_text(s,encoding='utf-8')
 
       - name: Commit and publish cache
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add top10.json index.html
+          git add top10.json index.html enhancements.js
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "Refresh live Top 10 data"
+          git commit -m "Add flexible stock search and Top 10 details"
           git pull --rebase origin main
           git push origin HEAD:main
