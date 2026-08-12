@@ -1,99 +1,17 @@
-(function(){
-'use strict';
+(function(){'use strict';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-const local=[
- ['a11099','Arista Networks, Inc.','ANET','A11099'],['arista','Arista Networks, Inc.','ANET','A11099'],['anet','Arista Networks, Inc.','ANET','A11099'],
- ['ama','Amazon.com, Inc.','AMZN','906866'],['amazon','Amazon.com, Inc.','AMZN','906866'],
- ['nvda','NVIDIA Corporation','NVDA','918422'],['nvidia','NVIDIA Corporation','NVDA','918422']
-];
-function norm(x){if(Array.isArray(x))return{name:x[1]||x[2],symbol:x[2]||'',wkn:x[3]||''};return{name:x.longname||x.shortname||x.displayName||x.symbol,symbol:x.symbol||'',wkn:x.wkn||''}}
-function suggestions(q){const n=q.toLowerCase();return local.filter(x=>x[0].startsWith(n)||x[1].toLowerCase().includes(n)||x[2].toLowerCase().startsWith(n)).map(norm)}
-function setupInput(id){
- const input=document.getElementById(id);if(!input||input.dataset.enhanced)return;input.dataset.enhanced='1';input.placeholder='WKN oder Aktienname, z. B. A11099';
- const p=input.parentElement;p.style.position='relative';const box=document.createElement('div');box.className='stock-suggestions';p.appendChild(box);
- input.addEventListener('input',()=>{const rows=suggestions(input.value.trim());box.innerHTML=rows.map((r,i)=>`<button type="button" class="stock-suggestion" data-i="${i}"><b>${esc(r.name)}</b><span>${esc(r.symbol)} · WKN ${esc(r.wkn)}</span></button>`).join('');box._rows=rows;box.style.display=rows.length?'block':'none';delete input.dataset.selectedSymbol});
- box.addEventListener('pointerdown',e=>{const b=e.target.closest('.stock-suggestion');if(!b)return;e.preventDefault();const r=box._rows?.[+b.dataset.i];if(!r)return;input.value=r.wkn;input.dataset.selectedSymbol=r.symbol;input.dataset.selectedWkn=r.wkn;input.dataset.selectedName=r.name;box.style.display='none';input.dispatchEvent(new Event('change',{bubbles:true}))});
- input.addEventListener('blur',()=>setTimeout(()=>box.style.display='none',200));
-}
-
-function top10Detail(x,i){
- const score=Number(x.score)||0,name=x.name||x.symbol||'',sym=(x.symbol||'').toUpperCase(),wkn=x.wkn||'';
- return `<details class="top10-detail" data-symbol="${esc(sym)}" data-wkn="${esc(wkn)}"><summary><span class="top10-plus">+</span><span class="top10-rank">#${i+1}</span><span class="top10-name" title="${esc(name)}">${esc(name)}</span><span class="top10-symbol">${esc(sym)}</span><span class="top10-wkn">WKN: ${esc(wkn||'—')}</span><span class="top10-score">${Math.round(score)}/100</span></summary><div class="top10-detail-body"><div class="top10-detail-loading">Detailanalyse wird geladen …</div></div></details>`;
-}
-
-function addDescriptions(root=document){
- root.querySelectorAll('.stock-body').forEach(body=>{
-  if(body.querySelector('.metric-explanations'))return;
-  const s=document.createElement('section');s.className='card metric-explanations';
-  s.innerHTML='<h4>Kennzahlen erklärt</h4><dl><dt>Kurs</dt><dd>Letzter verfügbarer Schlusskurs.</dd><dt>RSI 14</dt><dd>Unter 30 überverkauft, über 70 überkauft; dazwischen neutral.</dd><dt>Trend</dt><dd>Einordnung der Kursentwicklung anhand gleitender Durchschnitte.</dd><dt>Technik-Score</dt><dd>Regelbasierter Wert von 0 bis 100. Je höher, desto positiver die technische Ausgangslage.</dd><dt>Risiko</dt><dd>Einordnung der historischen Kursschwankungen.</dd><dt>Volatilität</dt><dd>Annualisierte historische Schwankungsbreite in Prozent.</dd><dt>SMA 20 / 50 / 200</dt><dd>Gleitende Durchschnittskurse für kurz-, mittel- und langfristigen Trend.</dd><dt>Unterstützung</dt><dd>Technische Auffangzone auf Basis der jüngeren Kurshistorie.</dd><dt>Widerstand</dt><dd>Technische Hürde auf Basis der jüngeren Kurshistorie.</dd><dt>Empfehlung</dt><dd>Modellbewertung, keine Anlageberatung.</dd></dl>';
-  body.appendChild(s);
- });
-}
-
-async function loadDetail(d){
- if(d.dataset.loaded==='1')return;
- d.dataset.loaded='1';
- const body=d.querySelector('.top10-detail-body');
- const sym=(d.dataset.symbol||'').toUpperCase();
- const name=d.querySelector('.top10-name')?.textContent?.trim()||sym;
- try{
-  if(!sym)throw Error('Kein Börsensymbol vorhanden');
-  const lookup=sym==='A11099'?'ANET':sym;
-  const hit=await trySymbols([lookup],name);
-  if(!hit)throw Error('Keine Kursdaten verfügbar');
-  if(typeof stockMarkup!=='function')throw Error('Detailanalyse-Funktion nicht verfügbar');
-  const temp=document.createElement('div');
-  temp.innerHTML=stockMarkup(hit,'top10-'+Date.now());
-  const detail=temp.querySelector('.stock-group');
-  if(!detail)throw Error('Detailanalyse konnte nicht erstellt werden');
-  detail.open=true;
-  body.replaceChildren(detail);
-  addDescriptions(body);
-  /* Wichtig: keine separate drawStockCharts()-Aufrufung hier.
-     Die Detailanalyse wird als vollständige Analyse eingebettet. Dadurch kann
-     kein null/canvas-Fehler mehr entstehen, wenn die Chart-ID im erzeugten
-     Fragment nicht mit der globalen Chart-Funktion übereinstimmt. */
- }catch(e){
-  console.error('Top10 Detailanalyse:',e);
-  d.dataset.loaded='0';
-  body.innerHTML='<div class="top10-detail-error">Detailanalyse konnte nicht geladen werden. '+esc(e?.message||e)+'</div>';
- }
-}
-
-window.renderTop10Enhanced=function(j){
- const grid=document.getElementById('top10Grid');if(!grid)return;
- const out=(j?.items||[]).filter(x=>Number(x.score)>=90).sort((a,b)=>Number(b.score)-Number(a.score)).slice(0,10);
- grid.innerHTML=out.length?out.map(top10Detail).join(''):'<div class="top10-empty">Aktuell keine Treffer ≥90/100.</div>';
- grid.querySelectorAll('.top10-detail').forEach(d=>d.addEventListener('toggle',()=>{if(d.open)loadDetail(d)}));
- addDescriptions(grid);
-};
-
-function installCounter(){
- if(document.getElementById('pageCounter'))return;
- const hero=document.querySelector('.hero');if(!hero)return;
- hero.style.position='relative';
- const box=document.createElement('div');box.id='pageCounter';box.className='page-counter';
- box.innerHTML='<span>👁️ Zugriffe</span><b class="counterapi" data-site="fabelicious.github.io/akt_app" data-path="/" key="pageviews" behavior="view">–</b>';
- hero.appendChild(box);
- if(!document.querySelector('script[data-counterapi]')){const s=document.createElement('script');s.src='https://counterapi.com/c.js?ns=fabelicious.github.io/akt_app';s.async=true;s.dataset.counterapi='1';document.head.appendChild(s)}
-}
-
-function styles(){
- const s=document.createElement('style');
- s.textContent=`
- .top10-buy{display:none!important}
- .page-counter{position:absolute;left:14px;top:10px;display:flex;align-items:center;gap:6px;padding:5px 9px;border-radius:8px;background:rgba(255,255,255,.10);color:#cbd5e1;font-size:10px;z-index:5}.page-counter b{color:#fff;font-size:12px}
- .top10-detail{grid-column:span 1;background:#1f2937;border:1px solid #374151;border-radius:12px;overflow:hidden}.top10-detail summary{list-style:none;cursor:pointer;padding:12px;display:grid;grid-template-columns:20px 28px 1fr auto;gap:4px 7px;align-items:center}.top10-detail summary::-webkit-details-marker{display:none}.top10-plus{font-size:24px;font-weight:800;line-height:1}.top10-detail[open] .top10-plus{transform:rotate(45deg)}.top10-detail .top10-rank{grid-column:2}.top10-detail .top10-name{grid-column:3}.top10-detail .top10-symbol{grid-column:3;font-size:11px;color:#94a3b8}.top10-detail .top10-wkn{grid-column:3;font-size:11px;color:#cbd5e1}.top10-detail .top10-score{grid-column:4;grid-row:1 / span 3}.top10-detail-body{padding:0 10px 10px;border-top:1px solid #374151}.top10-detail-loading,.top10-detail-error{padding:14px;color:#94a3b8;font-size:12px}.top10-detail-error{color:#fca5a5}.top10-detail-body .stock-group{border:0;border-radius:0;background:transparent}.metric-explanations{margin-top:10px}.metric-explanations h4{margin:0 0 8px;font-size:13px}.metric-explanations dl{margin:0;display:grid;grid-template-columns:1fr 2fr;gap:6px 12px;font-size:11px}.metric-explanations dt{font-weight:800;color:#334155}.metric-explanations dd{margin:0;color:#64748b}.stock-suggestions{display:none;position:absolute;z-index:99999;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid #cbd5e1;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);overflow:hidden}.stock-suggestion{display:flex;flex-direction:column;width:100%;text-align:left;border:0;background:#fff;padding:11px 12px;cursor:pointer;color:#172033}.stock-suggestion span{font-size:11px;color:#64748b;margin-top:2px}@media(max-width:750px){.top10-detail summary{grid-template-columns:20px 25px 1fr auto}.metric-explanations dl{grid-template-columns:1fr}.page-counter{top:7px;left:9px}}
- `;document.head.appendChild(s);
-}
-
-function init(){
- styles();installCounter();
- ['wkn1','wkn2','wkn3'].forEach(setupInput);
- const form=document.getElementById('form');
- if(form&&!form.dataset.a11099){form.dataset.a11099='1';form.addEventListener('submit',()=>form.querySelectorAll('input[id^="wkn"]').forEach(i=>{if(i.value.trim().toUpperCase()==='A11099'){i.dataset.originalWkn='A11099';i.value='ANET'}}),true)}
- try{const j=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null');if(j)window.renderTop10Enhanced(j)}catch(_){ }
-}
+const local=[['a11099','Arista Networks, Inc.','ANET','A11099'],['arista','Arista Networks, Inc.','ANET','A11099'],['anet','Arista Networks, Inc.','ANET','A11099'],['amazon','Amazon.com, Inc.','AMZN','906866'],['ama','Amazon.com, Inc.','AMZN','906866'],['nvidia','NVIDIA Corporation','NVDA','918422'],['nvda','NVIDIA Corporation','NVDA','918422']];
+const $=id=>document.getElementById(id);
+function setupInput(id){const input=$(id);if(!input||input.dataset.enhanced)return;input.dataset.enhanced='1';input.placeholder='WKN oder Aktienname, z. B. A11099';const p=input.parentElement;p.style.position='relative';const box=document.createElement('div');box.className='stock-suggestions';p.appendChild(box);input.addEventListener('input',()=>{const q=input.value.trim().toLowerCase();const rows=local.filter(x=>x[0].startsWith(q)||x[1].toLowerCase().includes(q)||x[2].toLowerCase().startsWith(q));box._rows=rows;box.innerHTML=rows.map((r,i)=>`<button type="button" class="stock-suggestion" data-i="${i}"><b>${esc(r[1])}</b><span>${r[2]} · WKN ${r[3]}</span></button>`).join('');box.style.display=rows.length?'block':'none'});box.addEventListener('pointerdown',e=>{const b=e.target.closest('button');if(!b)return;e.preventDefault();const r=box._rows[+b.dataset.i];if(r){input.value=r[3];input.dataset.selectedSymbol=r[2];input.dataset.selectedWkn=r[3];box.style.display='none'}});input.addEventListener('blur',()=>setTimeout(()=>box.style.display='none',150))}
+function addDescriptions(root=document){root.querySelectorAll('.stock-body').forEach(body=>{if(body.querySelector('.metric-explanations'))return;const s=document.createElement('section');s.className='card metric-explanations';s.innerHTML='<h4>Kennzahlen erklärt</h4><dl><dt>Kurs</dt><dd>Letzter verfügbarer Schlusskurs.</dd><dt>RSI 14</dt><dd>Unter 30 überverkauft, über 70 überkauft.</dd><dt>Trend</dt><dd>Kursentwicklung anhand der gleitenden Durchschnitte.</dd><dt>Technik-Score</dt><dd>Regelbasierter Wert von 0 bis 100; höher bedeutet technisch stärker.</dd><dt>Risiko</dt><dd>Einordnung der historischen Kursschwankungen.</dd><dt>Volatilität</dt><dd>Annualisierte historische Schwankungsbreite.</dd><dt>SMA 20 / 50 / 200</dt><dd>Kurz-, mittel- und langfristiger gleitender Durchschnitt.</dd><dt>Unterstützung</dt><dd>Technische Auffangzone der jüngeren Kurshistorie.</dd><dt>Widerstand</dt><dd>Technische Hürde der jüngeren Kurshistorie.</dd><dt>Empfehlung</dt><dd>Regelbasiertes Modell, keine Anlageberatung.</dd></dl>';body.appendChild(s)})}
+function top10Detail(x,i){const score=Number(x.score)||0,sym=(x.symbol||'').toUpperCase(),name=x.name||sym,wkn=x.wkn||'';return `<details class="top10-detail" data-symbol="${esc(sym)}" data-wkn="${esc(wkn)}"><summary><span class="top10-plus">+</span><span class="top10-rank">#${i+1}</span><span class="top10-name">${esc(name)}</span><span class="top10-symbol">${esc(sym)}</span><span class="top10-wkn">WKN: ${esc(wkn||'—')}</span><span class="top10-score">${Math.round(score)}/100</span></summary><div class="top10-detail-body"><div class="top10-detail-loading">Detailanalyse wird geladen …</div></div></details>`}
+const detailCache=new Map();
+async function loadDetail(d){if(d.dataset.loading==='1'||d.dataset.loaded==='1')return;d.dataset.loading='1';const body=d.querySelector('.top10-detail-body'),sym=(d.dataset.symbol||'').toUpperCase(),name=d.querySelector('.top10-name')?.textContent?.trim()||sym;try{if(!sym)throw Error('Kein Börsensymbol vorhanden');let hit=detailCache.get(sym);if(!hit){hit=await trySymbols([sym==='A11099'?'ANET':sym],name);if(!hit)throw Error('Keine Kursdaten verfügbar');detailCache.set(sym,hit)}if(typeof stockMarkup!=='function')throw Error('Detailanalyse-Funktion nicht verfügbar');const key='t10_'+sym.replace(/[^A-Z0-9]/g,'')+'_'+Date.now();const temp=document.createElement('div');temp.innerHTML=stockMarkup(hit,key);const detail=temp.querySelector('.stock-group');if(!detail)throw Error('Detailanalyse konnte nicht erstellt werden');detail.open=true;body.replaceChildren(detail);addDescriptions(body);body.querySelectorAll('canvas').forEach(c=>{const old=c.id;c.id=old+'-'+key});
+if(typeof drawStockCharts==='function'){const canvasIds=[`price-${key}`,`rsi-${key}`,`macd-${key}`];const ok=canvasIds.every(id=>$(id));if(ok){try{drawStockCharts(hit,key)}catch(err){console.warn('Chart übersprungen:',err)}}}
+d.dataset.loaded='1';d.dataset.loading='0'}catch(e){console.error(e);d.dataset.loading='0';body.innerHTML='<div class="top10-detail-error">Detailanalyse konnte nicht geladen werden. '+esc(e?.message||e)+'</div>'}}
+window.renderTop10Enhanced=function(j){const grid=$('top10Grid');if(!grid)return;const out=(j?.items||[]).filter(x=>Number(x.score)>=90).sort((a,b)=>Number(b.score)-Number(a.score)).slice(0,10);grid.innerHTML=out.length?out.map(top10Detail).join(''):'<div class="top10-empty">Aktuell keine Treffer ≥90/100.</div>';grid.querySelectorAll('.top10-detail').forEach(d=>d.addEventListener('toggle',()=>d.open&&loadDetail(d)));addDescriptions(grid)};
+function installCounter(){if($('pageCounter'))return;const hero=document.querySelector('.hero');if(!hero)return;hero.style.position='relative';const box=document.createElement('div');box.id='pageCounter';box.className='page-counter';box.innerHTML='<span>👁️ Zugriffe</span><b class="counterapi" data-site="fabelicious.github.io/akt_app" data-path="/" key="pageviews" behavior="view">–</b>';hero.appendChild(box);if(!document.querySelector('script[data-counterapi]')){const s=document.createElement('script');s.src='https://counterapi.com/c.js?ns=fabelicious.github.io/akt_app';s.async=true;s.dataset.counterapi='1';document.head.appendChild(s)}}
+function styles(){const s=document.createElement('style');s.textContent='.top10-buy{display:none!important}.page-counter{position:absolute;left:14px;top:10px;display:flex;gap:6px;padding:5px 9px;border-radius:8px;background:rgba(255,255,255,.1);color:#cbd5e1;font-size:10px;z-index:5}.page-counter b{color:#fff;font-size:12px}.top10-detail{grid-column:span 1;background:#1f2937;border:1px solid #374151;border-radius:12px;overflow:hidden}.top10-detail summary{list-style:none;cursor:pointer;padding:12px;display:grid;grid-template-columns:20px 28px 1fr auto;gap:4px 7px;align-items:center}.top10-detail summary::-webkit-details-marker{display:none}.top10-plus{font-size:24px;font-weight:800}.top10-detail[open] .top10-plus{transform:rotate(45deg)}.top10-detail .top10-rank{grid-column:2}.top10-detail .top10-name{grid-column:3}.top10-detail .top10-symbol{grid-column:3;font-size:11px;color:#94a3b8}.top10-detail .top10-wkn{grid-column:3;font-size:11px;color:#cbd5e1}.top10-detail .top10-score{grid-column:4;grid-row:1/span 3}.top10-detail-body{padding:0 10px 10px;border-top:1px solid #374151}.top10-detail-loading,.top10-detail-error{padding:14px;color:#94a3b8;font-size:12px}.top10-detail-error{color:#fca5a5}.top10-detail-body .stock-group{border:0;border-radius:0;background:transparent}.metric-explanations{margin-top:10px}.metric-explanations h4{margin:0 0 8px;font-size:13px}.metric-explanations dl{margin:0;display:grid;grid-template-columns:1fr 2fr;gap:6px 12px;font-size:11px}.metric-explanations dt{font-weight:800}.metric-explanations dd{margin:0;color:#64748b}.stock-suggestions{display:none;position:absolute;z-index:99999;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid #cbd5e1;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);overflow:hidden}.stock-suggestion{display:flex;flex-direction:column;width:100%;text-align:left;border:0;background:#fff;padding:11px 12px;cursor:pointer;color:#172033}.stock-suggestion span{font-size:11px;color:#64748b}@media(max-width:750px){.top10-detail summary{grid-template-columns:20px 25px 1fr auto}.metric-explanations dl{grid-template-columns:1fr}.page-counter{top:7px;left:9px}}';document.head.appendChild(s)}
+function init(){styles();installCounter();['wkn1','wkn2','wkn3'].forEach(setupInput);const form=$('form');if(form&&!form.dataset.a11099){form.dataset.a11099='1';form.addEventListener('submit',()=>form.querySelectorAll('input[id^="wkn"]').forEach(i=>{if(i.value.trim().toUpperCase()==='A11099')i.value='ANET'}),true)}try{const j=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null');if(j)window.renderTop10Enhanced(j)}catch(_){} }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
