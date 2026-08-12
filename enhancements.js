@@ -1,75 +1,46 @@
 (function(){
+  /* Performance layer: keep the first analysis small (about 14 months). Full 5Y history is requested only when the 5Y tab is selected. */
+  let longHistory=false;
+  const nativeFetch=window.fetch.bind(window);
+  window.fetch=function(input,init){
+    try{
+      let u=typeof input==='string'?input:input.url;
+      if(!longHistory&&u&&u.includes('query1.finance.yahoo.com/v8/finance/chart/')){
+        const url=new URL(u);url.searchParams.set('period1',String(Math.floor(Date.now()/1000)-60*60*24*420));u=url.toString();
+        if(typeof input==='string')input=u;else input=new Request(u,input);
+      }
+    }catch(_){}
+    return nativeFetch(input,init);
+  };
+  document.addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)longHistory=b.dataset.d==='1825'});
+
   const suggestionCache=new Map();
   const local=[
-    ['ama','Amazon.com, Inc.','AMZN','906866'],['amazon','Amazon.com, Inc.','AMZN','906866'],
-    ['nvda','NVIDIA Corporation','NVDA','918422'],['nvidia','NVIDIA Corporation','NVDA','918422'],
-    ['aapl','Apple Inc.','AAPL','865985'],['apple','Apple Inc.','AAPL','865985'],
-    ['msft','Microsoft Corporation','MSFT','870747'],['microsoft','Microsoft Corporation','MSFT','870747'],
-    ['googl','Alphabet Inc.','GOOGL','A14Y6F'],['google','Alphabet Inc.','GOOGL','A14Y6F'],
-    ['meta','Meta Platforms, Inc.','META','A1JWVX'],['facebook','Meta Platforms, Inc.','META','A1JWVX'],
-    ['tsla','Tesla, Inc.','TSLA','A1CX3T'],['tesla','Tesla, Inc.','TSLA','A1CX3T'],
-    ['sap','SAP SE','SAP','716460'],['amd','Advanced Micro Devices, Inc.','AMD','863186'],
-    ['asml','ASML Holding N.V.','ASML','A1J4U4'],['netflix','Netflix, Inc.','NFLX','552484'],['nflx','Netflix, Inc.','NFLX','552484'],
-    ['paypal','PayPal Holdings, Inc.','PYPL','A14R7U'],['adobe','Adobe Inc.','ADBE','871981'],
-    ['salesforce','Salesforce, Inc.','CRM','A0B87V'],['crm','Salesforce, Inc.','CRM','A0B87V'],
-    ['uber','Uber Technologies, Inc.','UBER','A2PHHG'],['cisco','Cisco Systems, Inc.','CSCO','878841'],
-    ['visa','Visa Inc.','V','A2J7M9'],['mastercard','Mastercard Incorporated','MA','A0F6L9'],
-    ['costco','Costco Wholesale Corporation','COST','888351'],['oracle','Oracle Corporation','ORCL','871460']
+    ['ama','Amazon.com, Inc.','AMZN','906866'],['amazon','Amazon.com, Inc.','AMZN','906866'],['nvda','NVIDIA Corporation','NVDA','918422'],['nvidia','NVIDIA Corporation','NVDA','918422'],
+    ['aapl','Apple Inc.','AAPL','865985'],['apple','Apple Inc.','AAPL','865985'],['msft','Microsoft Corporation','MSFT','870747'],['microsoft','Microsoft Corporation','MSFT','870747'],
+    ['googl','Alphabet Inc.','GOOGL','A14Y6F'],['google','Alphabet Inc.','GOOGL','A14Y6F'],['meta','Meta Platforms, Inc.','META','A1JWVX'],['facebook','Meta Platforms, Inc.','META','A1JWVX'],
+    ['tsla','Tesla, Inc.','TSLA','A1CX3T'],['tesla','Tesla, Inc.','TSLA','A1CX3T'],['sap','SAP SE','SAP','716460'],['amd','Advanced Micro Devices, Inc.','AMD','863186'],
+    ['asml','ASML Holding N.V.','ASML','A1J4U4'],['nflx','Netflix, Inc.','NFLX','552484'],['netflix','Netflix, Inc.','NFLX','552484'],['adobe','Adobe Inc.','ADBE','871981'],
+    ['salesforce','Salesforce, Inc.','CRM','A0B87V'],['crm','Salesforce, Inc.','CRM','A0B87V'],['uber','Uber Technologies, Inc.','UBER','A2PHHG'],['cisco','Cisco Systems, Inc.','CSCO','878841'],
+    ['visa','Visa Inc.','V','A2J7M9'],['mastercard','Mastercard Incorporated','MA','A0F6L9'],['costco','Costco Wholesale Corporation','COST','888351'],['oracle','Oracle Corporation','ORCL','871460']
   ];
   const esc=v=>String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
-  const uniq=a=>[...new Set(a)];
   function localSuggestions(q){
-    const n=q.toLowerCase();
-    const rows=local.filter(x=>x[0].startsWith(n)||x[1].toLowerCase().includes(n)||x[2].toLowerCase().startsWith(n)).slice(0,8);
+    const n=q.toLowerCase(),rows=local.filter(x=>x[0].startsWith(n)||x[1].toLowerCase().includes(n)||x[2].toLowerCase().startsWith(n)).slice(0,8);
     try{const j=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null');(j?.items||[]).forEach(x=>{const s=(x.symbol||'').toLowerCase(),name=(x.name||'').toLowerCase();if(s.startsWith(n)||name.includes(n))rows.push([n,x.name,x.symbol,x.wkn||''])})}catch(_){}
     return rows.filter((x,i,a)=>a.findIndex(y=>y[2]===x[2])===i).slice(0,8);
   }
   function setupInput(id){
-    const input=document.getElementById(id);if(!input||input.dataset.enhanced)return;input.dataset.enhanced='1';
-    input.placeholder='WKN oder Aktienname, z. B. ama';input.removeAttribute('inputmode');
-    const box=document.createElement('div');box.className='stock-suggestions';input.parentElement.style.position='relative';input.parentElement.appendChild(box);
-    let timer=0;
-    async function suggest(){
-      const q=input.value.trim();if(q.length<2){box.innerHTML='';box.style.display='none';return}
-      clearTimeout(timer);timer=setTimeout(async()=>{
-        let rows=localSuggestions(q);
-        if(!rows.length&&q.length>=3){
-          try{const key=q.toUpperCase();rows=suggestionCache.get(key);if(!rows){rows=(await yahooSearch(q)).filter(x=>x.quoteType==='EQUITY'&&x.symbol).slice(0,6);suggestionCache.set(key,rows)}}catch(_){}
-        }
-        box.innerHTML=rows.map((x,i)=>{const name=x[1]||x.longname||x.shortname||x[2]||x.symbol,sym=x[2]||x.symbol,w=x[3]||'';return `<button type="button" class="stock-suggestion" data-i="${i}"><b>${esc(name)}</b><span>${esc(sym)}${w?' · WKN '+esc(w):''}</span></button>`}).join('');
-        box.style.display=rows.length?'block':'none';
-        box.querySelectorAll('.stock-suggestion').forEach(b=>b.onclick=()=>{const x=rows[+b.dataset.i],sym=x[2]||x.symbol;input.value=sym;input.dataset.selectedSymbol=sym;input.dataset.selectedName=x[1]||x.longname||x.shortname||sym;box.style.display='none'});
-      },150);
-    }
+    const input=document.getElementById(id);if(!input||input.dataset.enhanced)return;input.dataset.enhanced='1';input.placeholder='WKN oder Aktienname, z. B. ama';input.removeAttribute('inputmode');
+    const box=document.createElement('div');box.className='stock-suggestions';input.parentElement.style.position='relative';input.parentElement.appendChild(box);let timer=0;
+    async function suggest(){const q=input.value.trim();if(q.length<2){box.innerHTML='';box.style.display='none';return}clearTimeout(timer);timer=setTimeout(async()=>{let rows=localSuggestions(q);if(!rows.length&&q.length>=3){try{const key=q.toUpperCase();rows=suggestionCache.get(key);if(!rows){rows=(await yahooSearch(q)).filter(x=>x.quoteType==='EQUITY'&&x.symbol).slice(0,6);suggestionCache.set(key,rows)}}catch(_){}}box.innerHTML=rows.map((x,i)=>{const name=x[1]||x.longname||x.shortname||x[2]||x.symbol,sym=x[2]||x.symbol,w=x[3]||'';return `<button type="button" class="stock-suggestion" data-i="${i}"><b>${esc(name)}</b><span>${esc(sym)}${w?' · WKN '+esc(w):''}</span></button>`}).join('');box.style.display=rows.length?'block':'none';box.querySelectorAll('.stock-suggestion').forEach(b=>b.onclick=()=>{const x=rows[+b.dataset.i],sym=x[2]||x.symbol;input.value=sym;input.dataset.selectedSymbol=sym;box.style.display='none'})},150)}
     input.addEventListener('input',()=>{delete input.dataset.selectedSymbol;suggest()});input.addEventListener('focus',suggest);input.addEventListener('blur',()=>setTimeout(()=>box.style.display='none',160));
   }
-  function top10Detail(x,i){
-    const score=Number(x.score)||0,name=x.name||x.symbol,wkn=x.wkn||'',sym=x.symbol||'';
-    return `<details class="top10-detail" data-symbol="${esc(sym)}" data-wkn="${esc(wkn)}"><summary><span class="top10-plus">+</span><span class="top10-rank">#${i+1}</span><span class="top10-name" title="${esc(name)}">${esc(name)}</span><span class="top10-symbol">${esc(sym)}</span><span class="top10-wkn">WKN: <button type="button" class="wkn-copy" data-wkn="${esc(wkn)}">${esc(wkn||'—')}</button></span><span class="top10-score">${Math.round(score)}/100</span></summary><div class="top10-detail-body"><div class="top10-detail-loading">Detailanalyse wird geladen …</div></div></details>`;
-  }
-  async function loadDetail(d){
-    if(d.dataset.loaded==='1')return;d.dataset.loaded='1';const body=d.querySelector('.top10-detail-body'),sym=d.dataset.symbol,wkn=d.dataset.wkn;
-    try{
-      const hit=await trySymbols([sym],d.querySelector('.top10-name')?.textContent||sym);
-      if(!hit)throw Error('Keine Kursdaten verfügbar');
-      const temp=document.createElement('div');temp.innerHTML=stockMarkup(hit,Math.floor(Math.random()*100000));const detail=temp.querySelector('.stock-group');
-      if(!detail)throw Error('Detailanalyse konnte nicht erstellt werden');
-      detail.open=true;body.innerHTML='';body.appendChild(detail);
-      const idx=Number(detail.querySelector('canvas')?.id?.match(/-(\d+)$/)?.[1]);drawStockCharts(hit,idx);
-    }catch(e){d.dataset.loaded='0';body.innerHTML='<div class="top10-detail-error">Detailanalyse konnte nicht geladen werden. '+esc(e.message)+'</div>'}
-  }
-  window.renderTop10Enhanced=function(j){
-    const out=(j.items||[]).filter(x=>Number(x.score)>=90).sort((a,b)=>Number(b.score)-Number(a.score)).slice(0,10),grid=document.getElementById('top10Grid');if(!grid)return;
-    grid.innerHTML=out.length?out.map(top10Detail).join(''):'<div class="top10-empty">Aktuell keine Treffer ≥90/100.</div>';
-    grid.querySelectorAll('.top10-detail').forEach(d=>d.addEventListener('toggle',()=>{if(d.open)loadDetail(d)}));
-    grid.querySelectorAll('.wkn-copy').forEach(b=>b.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();const w=b.dataset.wkn;if(!w)return;try{await navigator.clipboard.writeText(w);const old=b.textContent;b.textContent='kopiert ✓';setTimeout(()=>b.textContent=old,1000)}catch(_){} }));
-  };
-  function installStyles(){const s=document.createElement('style');s.textContent=`
-    .stock-suggestions{display:none;position:absolute;z-index:1000;left:0;right:0;top:100%;background:#fff;border:1px solid #d1d5db;border-radius:10px;margin-top:4px;box-shadow:0 8px 25px rgba(0,0,0,.15);overflow:hidden}.stock-suggestion{display:flex;flex-direction:column;width:100%;text-align:left;border:0;background:#fff;padding:10px 12px;cursor:pointer;color:#172033}.stock-suggestion:hover{background:#f1f5f9}.stock-suggestion span{font-size:11px;color:#64748b;margin-top:2px}
-    .top10-detail{grid-column:span 1;background:#1f2937;border:1px solid #374151;border-radius:12px;overflow:hidden}.top10-detail summary{list-style:none;cursor:pointer;padding:12px;display:grid;grid-template-columns:20px 28px 1fr auto;gap:4px 7px;align-items:center}.top10-detail summary::-webkit-details-marker{display:none}.top10-plus{font-size:24px;font-weight:800;line-height:1}.top10-detail[open] .top10-plus{transform:rotate(45deg)}.top10-detail .top10-rank{grid-column:2}.top10-detail .top10-name{grid-column:3}.top10-detail .top10-symbol{grid-column:3;font-size:11px;color:#94a3b8}.top10-detail .top10-wkn{grid-column:3;font-size:11px;color:#cbd5e1}.top10-detail .top10-score{grid-column:4;grid-row:1 / span 3}.top10-detail-body{padding:0 10px 10px;border-top:1px solid #374151}.top10-detail-loading,.top10-detail-error{padding:14px;color:#94a3b8;font-size:12px}.top10-detail-error{color:#fca5a5}.top10-detail-body .stock-group{border:0;border-radius:0;background:transparent}.top10-detail-body .stock-group summary{background:#fff;color:#172033;border-radius:10px;margin-top:10px}.top10-detail-body .stock-body{background:#fff;border-radius:0 0 10px 10px}
-    @media(max-width:750px){.top10-detail summary{grid-template-columns:20px 25px 1fr auto}}
-  `;document.head.appendChild(s)}
-  function patchScan(){const original=window.scanTop10;if(typeof original!=='function')return setTimeout(patchScan,100);window.scanTop10=async function(){await original();try{const j=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null');if(j)renderTop10Enhanced(j)}catch(_){}};try{const j=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null');if(j)renderTop10Enhanced(j)}catch(_){} }
+  function top10Detail(x,i){const score=Number(x.score)||0,name=x.name||x.symbol,wkn=x.wkn||'',sym=x.symbol||'';return `<details class="top10-detail" data-symbol="${esc(sym)}" data-wkn="${esc(wkn)}"><summary><span class="top10-plus">+</span><span class="top10-rank">#${i+1}</span><span class="top10-name" title="${esc(name)}">${esc(name)}</span><span class="top10-symbol">${esc(sym)}</span><span class="top10-wkn">WKN: <button type="button" class="wkn-copy" data-wkn="${esc(wkn)}">${esc(wkn||'—')}</button></span><span class="top10-score">${Math.round(score)}/100</span></summary><div class="top10-detail-body"><div class="top10-detail-loading">Detailanalyse wird geladen …</div></div></details>`}
+  async function loadDetail(d){if(d.dataset.loaded==='1')return;d.dataset.loaded='1';const body=d.querySelector('.top10-detail-body'),sym=d.dataset.symbol;try{const hit=await trySymbols([sym],d.querySelector('.top10-name')?.textContent||sym);if(!hit)throw Error('Keine Kursdaten verfügbar');const temp=document.createElement('div');temp.innerHTML=stockMarkup(hit,Math.floor(Math.random()*100000));const detail=temp.querySelector('.stock-group');if(!detail)throw Error('Detailanalyse konnte nicht erstellt werden');detail.open=true;body.innerHTML='';body.appendChild(detail);const idx=Number(detail.querySelector('canvas')?.id?.match(/-(\d+)$/)?.[1]);drawStockCharts(hit,idx)}catch(e){d.dataset.loaded='0';body.innerHTML='<div class="top10-detail-error">Detailanalyse konnte nicht geladen werden. '+esc(e.message)+'</div>'}}
+  window.renderTop10Enhanced=function(j){const out=(j.items||[]).filter(x=>Number(x.score)>=90).sort((a,b)=>Number(b.score)-Number(a.score)).slice(0,10),grid=document.getElementById('top10Grid');if(!grid)return;grid.innerHTML=out.length?out.map(top10Detail).join(''):'<div class="top10-empty">Aktuell keine Treffer ≥90/100.</div>';grid.querySelectorAll('.top10-detail').forEach(d=>d.addEventListener('toggle',()=>{if(d.open)loadDetail(d)}));grid.querySelectorAll('.wkn-copy').forEach(b=>b.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();const w=b.dataset.wkn;if(!w)return;try{await navigator.clipboard.writeText(w);const old=b.textContent;b.textContent='kopiert ✓';setTimeout(()=>b.textContent=old,1000)}catch(_){}}))};
+  function installStyles(){const s=document.createElement('style');s.textContent=`.stock-suggestions{display:none;position:absolute;z-index:1000;left:0;right:0;top:100%;background:#fff;border:1px solid #d1d5db;border-radius:10px;margin-top:4px;box-shadow:0 8px 25px rgba(0,0,0,.15);overflow:hidden}.stock-suggestion{display:flex;flex-direction:column;width:100%;text-align:left;border:0;background:#fff;padding:10px 12px;cursor:pointer;color:#172033}.stock-suggestion:hover{background:#f1f5f9}.stock-suggestion span{font-size:11px;color:#64748b;margin-top:2px}.top10-detail{grid-column:span 1;background:#1f2937;border:1px solid #374151;border-radius:12px;overflow:hidden}.top10-detail summary{list-style:none;cursor:pointer;padding:12px;display:grid;grid-template-columns:20px 28px 1fr auto;gap:4px 7px;align-items:center}.top10-detail summary::-webkit-details-marker{display:none}.top10-plus{font-size:24px;font-weight:800;line-height:1}.top10-detail[open] .top10-plus{transform:rotate(45deg)}.top10-detail .top10-rank{grid-column:2}.top10-detail .top10-name{grid-column:3}.top10-detail .top10-symbol{grid-column:3;font-size:11px;color:#94a3b8}.top10-detail .top10-wkn{grid-column:3;font-size:11px;color:#cbd5e1}.top10-detail .top10-score{grid-column:4;grid-row:1 / span 3}.top10-detail-body{padding:0 10px 10px;border-top:1px solid #374151}.top10-detail-loading,.top10-detail-error{padding:14px;color:#94a3b8;font-size:12px}.top10-detail-error{color:#fca5a5}.top10-detail-body .stock-group{border:0;border-radius:0;background:transparent}.top10-detail-body .stock-group summary{background:#fff;color:#172033;border-radius:10px;margin-top:10px}.top10-detail-body .stock-body{background:#fff;border-radius:0 0 10px 10px}@media(max-width:750px){.top10-detail summary{grid-template-columns:20px 25px 1fr auto}}`;document.head.appendChild(s)}
+  function patchScan(){const original=window.scanTop10;if(typeof original!=='function')return setTimeout(patchScan,100);window.scanTop10=async function(){try{const cached=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null');if(cached&&cached.generatedAt&&Date.now()-new Date(cached.generatedAt).getTime()<15*60*1000)renderTop10Enhanced(cached)}catch(_){}await original();try{const j=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null');if(j)renderTop10Enhanced(j)}catch(_){}};try{const j=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null');if(j)renderTop10Enhanced(j)}catch(_){} }
   function init(){installStyles();['wkn1','wkn2','wkn3'].forEach(setupInput);patchScan()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
