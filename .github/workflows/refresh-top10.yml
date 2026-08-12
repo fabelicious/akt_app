@@ -31,10 +31,8 @@ jobs:
           import json, math, urllib.parse, urllib.request
           from concurrent.futures import ThreadPoolExecutor, as_completed
           from datetime import datetime, timezone
-
           symbols = ['NVDA','MSFT','AAPL','AMZN','GOOGL','META','AVGO','AMD','MU','TSM','ASML','SAP','ORCL','NFLX','PLTR','TSLA','QCOM','CSCO','JPM','V','MA','COST','LLY','NVO','CRM','ADBE','PANW','CRWD','ANET','GE','CAT','SHOP','UBER']
           wkns = {'NVDA':'918422','MSFT':'870747','AAPL':'865985','AMZN':'906866','GOOGL':'A14Y6F','META':'A1JWVX','AVGO':'A2JG9Z','AMD':'863186','MU':'869020','TSM':'909800','ASML':'A1J4U4','SAP':'716460','ORCL':'871460','NFLX':'552484','PLTR':'A2QA4J','TSLA':'A1CX3T','QCOM':'883121','CSCO':'878841','JPM':'850628','V':'A2J7M9','MA':'A0F6L9','COST':'888351','LLY':'858560','NVO':'A3EU6F','CRM':'A0B87V','ADBE':'871981','PANW':'A1JZ0Q','CRWD':'A2PK2R','ANET':'A11099','GE':'A3CSML','CAT':'850598','SHOP':'A14TJP','UBER':'A2PHHG'}
-
           def avg(a): return sum(a) / len(a) if a else 0
           def rsi(a):
               if len(a) < 15: return 50
@@ -43,15 +41,12 @@ jobs:
                   d=a[i]-a[i-1]; g+=max(d,0); l+=max(-d,0)
               return 100-100/(1+g/l) if l else 100
           def score(close):
-              # Must match the detailed analysis in index.html exactly:
-              # SMA20 +8, SMA50 +10, SMA200 +18, RSI neutral +5, MACD +8.
               n=close[-1]; a20=avg(close[-20:]); a50=avg(close[-50:]); a200=avg(close[-200:]); rr=rsi(close)
-              if n>a20: s=58
-              else: s=42
+              s=50
+              s += 8 if n>a20 else -8
               s += 10 if n>a50 else -10
               s += 18 if n>a200 else -18
               s += 8 if rr<30 else -8 if rr>70 else 5
-              # MACD calculation identical to index.html
               e12=e26=sg=None; mm=[]; ss=[]
               for p in close:
                   e12=p if e12 is None else p*2/13+e12*11/13
@@ -78,12 +73,20 @@ jobs:
           out.sort(key=lambda x:(-x['score'],x['symbol']))
           Path('top10.json').write_text(json.dumps({'generatedAt':datetime.now(timezone.utc).isoformat(),'criteria':'>=90/100','items':[x for x in out if x['score']>=90][:10]},ensure_ascii=False,separators=(',',':')),encoding='utf-8')
 
-      - name: Make Top 10 loading resilient
+      - name: Make Top 10 loading resilient and WKN copyable
         shell: python
         run: |
           from pathlib import Path
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
+          cs=s.index('function top10Card(')
+          ce=s.index('\nasync function scanTop10()',cs)
+          card="""function top10Card(x,i){const score=Number(x.score)||0,last=Number(x.price)||0,name=x.name||x.symbol,wkn=x.wkn||'nicht hinterlegt',chg=x.change==null?'':((Number(x.change)||0).toFixed(2)+'%');return `<div class=\\"top10-item\\"><div><div class=\\"top10-rank\\">#${i+1}</div><div class=\\"top10-name\\" title=\\"${name}\\">${name}</div><div class=\\"top10-symbol\\">${x.symbol}</div><div class=\\"top10-wkn\\">WKN: <button type=\\"button\\" class=\\"wkn-copy\\" data-wkn=\\"${wkn}\\" title=\\"WKN kopieren\\">${wkn}</button></div></div><div><div class=\\"top10-score\\">${Math.round(score)}/100</div><div class=\\"top10-meta\\"><span>${last?fmt(last):''}</span><span>${chg}</span></div><div class=\\"top10-buy\\">KAUFEN · 90+ erreicht</div></div></div>`}\n"""
+          s=s[:cs]+card+s[ce:]
+          s=s.replace('.top10-symbol{font-size:11px;color:#94a3b8}', '.top10-symbol{font-size:11px;color:#94a3b8}.top10-wkn{font-size:11px;color:#cbd5e1;margin-top:4px}.wkn-copy{border:0;background:transparent;color:#fff;padding:0;font:inherit;font-size:11px;font-weight:800;cursor:pointer;text-decoration:underline;text-underline-offset:2px}')
+          marker="scanTop10();\n"
+          handler="""document.addEventListener('click',async e=>{const b=e.target.closest('.wkn-copy');if(!b)return;const w=b.dataset.wkn;if(!w||w==='nicht hinterlegt')return;try{await navigator.clipboard.writeText(w);const old=b.textContent;b.textContent='kopiert ✓';setTimeout(()=>b.textContent=old,1200)}catch(_){const ta=document.createElement('textarea');ta.value=w;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();const old=b.textContent;b.textContent='kopiert ✓';setTimeout(()=>b.textContent=old,1200)}});\nscanTop10();\n"""
+          s=s.replace(marker,handler,1)
           start=s.index('async function scanTop10(){')
           end=s.index("$('form').onsubmit=", start)
           fn="""async function scanTop10(){if(top10Busy)return;top10Busy=true;$('top10Date').textContent='Aktuelle Daten werden geladen …';$('top10Grid').innerHTML='<div class=\\"top10-loading\\">Top 10 wird aktualisiert …</div>';const sources=['https://fabelicious.github.io/akt_app/top10.json?ts='+Date.now(),'https://raw.githubusercontent.com/fabelicious/akt_app/main/top10.json?ts='+Date.now(),'./top10.json?ts='+Date.now()];let j=null,last='';for(const u of sources){try{const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);j=await r.json();if(j&&Array.isArray(j.items))break}catch(e){last=e.message}}try{if(!j)throw Error(last||'Top-10-Daten nicht erreichbar');localStorage.setItem('aktpro_top10_cache',JSON.stringify(j));const out=(j.items||[]).filter(x=>Number(x.score)>=90).sort((a,b)=>Number(b.score)-Number(a.score)).slice(0,10);$('top10Date').textContent=j.generatedAt?'Stand '+new Date(j.generatedAt).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'Aktuell';$('top10Grid').innerHTML=out.length?out.map(top10Card).join(''):'<div class=\\"top10-empty\\">Aktuell keine Treffer ≥90/100.</div>'}catch(e){try{const old=JSON.parse(localStorage.getItem('aktpro_top10_cache')||'null'),out=(old?.items||[]).filter(x=>Number(x.score)>=90).slice(0,10);if(out.length){$('top10Date').textContent='letzter verfügbarer Stand';$('top10Grid').innerHTML=out.map(top10Card).join('')}else throw e}catch(_){$('top10Date').textContent='Fehler';$('top10Grid').innerHTML='<div class=\\"top10-empty\\">Top-10-Daten konnten nicht geladen werden. Bitte Internetverbindung prüfen.</div>'}}finally{top10Busy=false}}\n"""
