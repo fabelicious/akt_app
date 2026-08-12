@@ -10,7 +10,11 @@
 .top10-panel{margin-top:13px;background:#111827;color:#fff;border-radius:16px;overflow:hidden}.top10-panel summary{list-style:none;cursor:pointer;padding:15px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}.top10-panel summary::-webkit-details-marker{display:none}.top10-panel summary:before{content:'›';font-size:24px;line-height:1;transform:rotate(90deg);transition:transform .2s}.top10-panel:not([open]) summary:before{transform:rotate(0deg)}.top10-summary-main{display:flex;align-items:center;gap:10px;min-width:0}.top10-title{font-size:18px;font-weight:900}.top10-subtitle{font-size:11px;color:#94a3b8}.top10-date{font-size:11px;color:#cbd5e1;white-space:nowrap}.top10-body{padding:0 12px 12px}.top10-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.top10-item{background:#1f2937;border:1px solid #374151;border-radius:12px;min-width:0;min-height:150px;padding:12px;display:flex;flex-direction:column;justify-content:space-between}.top10-rank{font-size:11px;color:#94a3b8;font-weight:800}.top10-name{font-size:14px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}.top10-symbol{font-size:11px;color:#94a3b8}.top10-score{font-size:25px;font-weight:950;color:#86efac;line-height:1.1;margin-top:7px}.top10-meta{display:flex;justify-content:space-between;gap:6px;font-size:11px;color:#cbd5e1;margin-top:5px}.top10-buy{display:inline-flex;align-items:center;justify-content:center;margin-top:9px;padding:6px 8px;border-radius:8px;background:#166534;color:#dcfce7;font-size:10px;font-weight:900}.top10-loading{grid-column:1/-1;padding:18px;text-align:center;color:#94a3b8;font-size:12px}.top10-empty{grid-column:1/-1;padding:18px;text-align:center;color:#94a3b8;font-size:12px}.top10-error{grid-column:1/-1;padding:14px;background:#1f2937;border-radius:10px;color:#fca5a5;font-size:12px}.top10-refresh{background:#fff;border:1px solid #d1d5db;font-size:11px;padding:7px 10px;border-radius:8px;cursor:pointer;font-weight:800}
 .group-controls{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:15px 0 8px}.group-title{font-size:18px;font-weight:850}.group-actions{display:flex;gap:7px}.action-btn{background:#fff;border:1px solid #d1d5db;font-size:12px}.individual-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch}.stock-group{background:#fff;border:1px solid #e5e7eb;border-radius:15px;overflow:hidden;min-width:0;height:100%}.stock-group summary{list-style:none;cursor:pointer;padding:15px 17px;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:62px}.stock-group summary::-webkit-details-marker{display:none}.stock-group summary:before{content:'›';font-size:22px;line-height:1;transform:rotate(0deg);transition:transform .2s}.stock-group[open] summary:before{transform:rotate(90deg)}.summary-main{display:flex;align-items:center;gap:10px;min-width:0}.summary-name{font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.summary-symbol{font-size:12px;color:#64748b}.summary-result{font-size:12px;font-weight:800;white-space:nowrap}.summary-result.buy{color:#15803d}.summary-result.watch{color:#a16207}.summary-result.no{color:#b91c1c}.stock-body{padding:0 12px 12px;border-top:1px solid #eef2f7}.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;min-width:0}.stock-body .card{background:#fbfdff}.wide{grid-column:span 2}.label{font-size:10px;text-transform:uppercase;color:#64748b}.value{font-size:18px;font-weight:850;margin-top:4px;overflow-wrap:anywhere}.sub{font-size:12px;color:#64748b;overflow-wrap:anywhere}.score{font-size:27px;font-weight:900}.meter{height:8px;background:#e5e7eb;border-radius:9px;margin-top:9px}.meter span{display:block;height:100%;width:50%;background:#38bdf8;border-radius:9px}.chart-title{font-size:12px;font-weight:800;margin:2px 0 7px}.chart{height:270px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:10px}.small{height:210px}.stock-charts{display:grid;grid-template-columns:1fr;gap:9px;margin-top:10px}.why{margin-top:9px}.why ul{margin-bottom:0;padding-left:18px}.fundamentals{margin-top:12px}
 @media(max-width:1100px){.top10-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.individual-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:750px){.search-grid{grid-template-columns:1fr}.search-actions{justify-content:stretch}.search-actions .btn{width:100%}.top10-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.individual-grid{grid-template-columns:1fr}.progress-dots span:nth-child(even){display:none}.group-controls{flex-direction:column;align-items:stretch}.group-actions{justify-content:stretch}.action-btn{flex:1}.top10-panel summary{align-items:flex-start}.top10-date{white-space:normal;text-align:right}}@media(max-width:450px){.top10-grid{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wide{grid-column:span 1}.summary-result{white-space:normal;text-align:right}.stock-group summary{align-items:flex-start}}
+
+.alert-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:13px;padding:12px 14px;background:#fff;border:1px solid #e5e7eb;border-radius:12px}.alert-toolbar-title{font-weight:850}.alert-toolbar-sub{font-size:11px;color:#64748b;margin-top:2px}.alert-toolbar-actions{display:flex;gap:7px;flex-wrap:wrap}.alert-btn{padding:8px 11px;border:1px solid #cbd5e1;background:#fff;border-radius:9px;font-size:11px;font-weight:800;cursor:pointer}.alert-btn.primary{background:#111827;color:#fff;border-color:#111827}.watch-btn{display:inline-flex;align-items:center;gap:5px;margin-top:9px;padding:7px 9px;border-radius:8px;border:1px solid #475569;background:#273449;color:#e2e8f0;font-size:10px;font-weight:900;cursor:pointer}.watch-btn.marked{background:#0f766e;color:#ccfbf1;border-color:#14b8a6}.top10-item .watch-btn{width:100%;justify-content:center}.watch-list{display:flex;flex-direction:column;gap:7px;margin-top:9px}.watch-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 10px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:9px}.watch-main{min-width:0}.watch-name{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.watch-meta{font-size:10px;color:#64748b}.watch-state{font-size:10px;font-weight:900}.watch-state.buy{color:#15803d}.watch-state.no{color:#b91c1c}.watch-state.watch{color:#a16207}.alert-modal{position:fixed;inset:0;background:rgba(15,23,42,.62);display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}.alert-modal.show{display:flex}.alert-dialog{width:min(560px,100%);background:#fff;border-radius:16px;padding:18px;box-shadow:0 25px 70px rgba(0,0,0,.28)}.alert-dialog h3{margin:0 0 5px}.alert-dialog .muted{font-size:12px;color:#64748b}.alert-form{display:grid;gap:10px;margin-top:14px}.alert-form label{font-size:11px;font-weight:800;color:#475569}.alert-form input[type=email],.alert-form input[type=text]{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:9px}.alert-checks{display:flex;gap:14px;flex-wrap:wrap}.alert-checks label{font-weight:700}.alert-dialog-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:15px}.mail-config{margin-top:12px;padding:11px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;font-size:11px;color:#475569}.mail-config strong{color:#172033}.alert-status{margin-top:9px;font-size:11px;color:#475569;min-height:16px}.alert-warning{margin-top:9px;padding:9px;background:#fff7ed;color:#9a3412;border-radius:8px;font-size:11px}.top10-subtitle strong{color:#f8fafc}
+@media(max-width:700px){.alert-toolbar{align-items:stretch;flex-direction:column}.alert-toolbar-actions{width:100%}.alert-toolbar-actions .alert-btn{flex:1}.watch-row{align-items:flex-start;flex-direction:column}}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -37,11 +41,17 @@
 
 <details class="top10-panel" id="top10Panel" open>
   <summary>
-    <div class="top10-summary-main"><div><div class="top10-title">🏆 Top 10 Kaufempfehlungen</div><div class="top10-subtitle">Tages-Scan · nur Aktien mit mindestens 90/100</div></div></div>
+    <div class="top10-summary-main"><div><div class="top10-title">🏆 Top 10 Kaufempfehlungen</div><div class="top10-subtitle">Tages-Scan · ohne WKN-Eingabe · nur Aktien mit mindestens 95/100</div></div></div>
     <div class="top10-date" id="top10Date">Wird geladen …</div>
   </summary>
   <div class="top10-body"><div id="top10Grid" class="top10-grid"><div class="top10-loading">Aktuelles Aktienuniversum wird geprüft …</div></div></div>
 </details>
+
+<section class="alert-toolbar" id="alertToolbar">
+  <div><div class="alert-toolbar-title">🔔 Beobachtete Titel & E-Mail-Alarme</div><div class="alert-toolbar-sub">Titel markieren, eigene E-Mail-Adresse hinterlegen und bei Wechsel zu KAUFEN bzw. NICHT KAUFEN benachrichtigen.</div></div>
+  <div class="alert-toolbar-actions"><button type="button" class="alert-btn" id="mailSettingsBtn">✉️ Mail konfigurieren</button><button type="button" class="alert-btn primary" id="watchListBtn">🔔 Markierte Titel</button></div>
+</section>
+<section class="card" id="watchListPanel" style="display:none;margin-top:9px"><b>Markierte Titel</b><div id="watchList" class="watch-list"></div></section>
 
 <div id="app" style="display:none">
 <div class="tabs"><button class="tab active" data-d="30">1M</button><button class="tab" data-d="90">3M</button><button class="tab" data-d="180">6M</button><button class="tab" data-d="365">1J</button><button class="tab" data-d="1825">5J</button></div>
@@ -84,13 +94,115 @@ function recClass(rec){return rec==='KAUFEN'?'buy':rec==='NICHT KAUFEN'?'no':'wa
 function stockMarkup(s,i){const z=analyse(s.data),rec=recFor(z.sc),cls=recClass(rec),last=z.c.at(-1),chg=(last/z.c.at(-2)-1)*100;return `<details class="stock-group" ${i===0?'open':''}><summary><div class="summary-main"><span class="summary-name">${s.name}</span><span class="summary-symbol">${s.symbol}</span></div><span class="summary-result ${cls}">${rec} · ${Math.round(z.sc)}/100</span></summary><div class="stock-body"><div class="grid"><div class="card"><div class="label">Unternehmen</div><div class="value">${s.name}</div><div class="sub">${s.symbol}</div></div><div class="card"><div class="label">Kurs</div><div class="value">${fmt(last)}</div><div class="sub">${chg>=0?'+':''}${chg.toFixed(2)} %</div></div><div class="card"><div class="label">RSI 14</div><div class="value">${z.r.toFixed(1)}</div><div class="sub">${z.r<30?'Überverkauft':z.r>70?'Überkauft':'Neutral'}</div></div><div class="card"><div class="label">Trend</div><div class="value">${last>z.a200?'AUFWÄRTS':'ABWÄRTS'}</div><div class="sub">${last>z.a50?'mittelfristig positiv':'mittelfristig negativ'}</div></div><div class="card wide"><div class="label">Technische Empfehlung</div><div class="score">${rec}</div><div class="sub">Modellscore ${Math.round(z.sc)}/100</div><div class="meter"><span style="width:${z.sc}%"></span></div></div><div class="card"><div class="label">Technik-Score</div><div class="value">${Math.round(z.sc)}/100</div></div><div class="card"><div class="label">Risiko</div><div class="value">${z.v<20?'Niedrig':z.v<35?'Mittel':'Hoch'}</div></div><div class="card"><div class="label">Volatilität</div><div class="value">${z.v.toFixed(1)} % p.a.</div></div><div class="card wide"><div class="label">SMA 20 / 50 / 200</div><div class="value">${[z.a20,z.a50,z.a200].map(fmt).join(' / ')}</div></div><div class="card"><div class="label">Unterstützung</div><div class="value">${fmt(Math.min(...z.c.slice(-60)))}</div></div><div class="card"><div class="label">Widerstand</div><div class="value">${fmt(Math.max(...z.c.slice(-60)))}</div></div></div><div class="stock-charts"><div class="chart"><div class="chart-title">Kursverlauf mit SMA 20 / 50 / 200</div><canvas id="price-${i}"></canvas></div><div class="chart small"><div class="chart-title">RSI 14</div><canvas id="rsi-${i}"></canvas></div><div class="chart small"><div class="chart-title">MACD</div><canvas id="macd-${i}"></canvas></div></div><section class="card why"><b>Warum diese Bewertung?</b><ul>${z.w.map(x=>'<li>'+x+'</li>').join('')}</ul></section></div></details>`}
 function renderIndividuals(){$('individuals').innerHTML=stocks.map(stockMarkup).join('');stocks.forEach((s,i)=>drawStockCharts(s,i))}
 function drawStockCharts(s,i){const v=s.data.slice(-Math.max(30,days)),a=v.map(x=>x.c),lab=v.map(x=>x.d.toLocaleDateString('de-DE'));const a20=v.map((_,j)=>j<19?null:sma(a.slice(0,j+1),20)),a50=v.map((_,j)=>j<49?null:sma(a.slice(0,j+1),50)),a200=v.map((_,j)=>j<199?null:sma(a.slice(0,j+1),200));s.charts=s.charts||{};Object.values(s.charts).forEach(c=>{if(c)c.destroy()});s.charts.price=new Chart($('price-'+i),{type:'line',data:{labels:lab,datasets:[{label:'Kurs',data:a,borderWidth:2,pointRadius:0},{label:'SMA 20',data:a20,pointRadius:0},{label:'SMA 50',data:a50,pointRadius:0},{label:'SMA 200',data:a200,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false}}});const rs=a.map((_,j)=>j<14?null:RSI(a.slice(0,j+1)));s.charts.rsi=new Chart($('rsi-'+i),{type:'line',data:{labels:lab,datasets:[{label:'RSI 14',data:rs,borderWidth:2,pointRadius:0},{label:'70',data:lab.map(()=>70),pointRadius:0},{label:'30',data:lab.map(()=>30),pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:100}}}});const[mm,ss]=MACD(a);s.charts.macd=new Chart($('macd-'+i),{type:'line',data:{labels:lab,datasets:[{label:'MACD',data:mm,borderWidth:2,pointRadius:0},{label:'Signal',data:ss,borderWidth:1,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false}})}
-function top10Card(s,i){const z=analyse(s.data),last=z.c.at(-1),prev=z.c.at(-2),chg=(last/prev-1)*100,name=s.name||s.meta?.longName||s.meta?.shortName||s.symbol;return `<div class="top10-item"><div><div class="top10-rank">#${i+1}</div><div class="top10-name" title="${name}">${name}</div><div class="top10-symbol">${s.symbol}</div></div><div><div class="top10-score">${Math.round(z.sc)}/100</div><div class="top10-meta"><span>${fmt(last)}</span><span>${chg>=0?'+':''}${chg.toFixed(2)}%</span></div><div class="top10-buy">KAUFEN · 90+ erreicht</div></div></div>`}
+function top10Card(s,i){const z=analyse(s.data),last=z.c.at(-1),prev=z.c.at(-2),chg=(last/prev-1)*100,name=s.name||s.meta?.longName||s.meta?.shortName||s.symbol;return `<div class="top10-item"><div><div class="top10-rank">#${i+1}</div><div class="top10-name" title="${name}">${name}</div><div class="top10-symbol">${s.symbol}</div></div><div><div class="top10-score">${Math.round(z.sc)}/100</div><div class="top10-meta"><span>${fmt(last)}</span><span>${chg>=0?'+':''}${chg.toFixed(2)}%</span></div><div class="top10-buy">KAUFEN · 95+ erreicht</div></div></div>`}
 async function scanTop10(){if(top10Busy)return;top10Busy=true;$('top10Date').textContent='Scan läuft …';$('top10Grid').innerHTML='<div class="top10-loading">Aktuelle Kursdaten werden geladen und technisch bewertet …</div>';try{let quotes=[];try{const [a,b]=await Promise.all([yahooScreener('most_actives',24),yahooScreener('day_gainers',24)]);quotes=[...a,...b]}catch(e){}let symbols=uniq(quotes.filter(q=>q.quoteType==='EQUITY'||!q.quoteType).map(q=>q.symbol));if(!symbols.length)symbols=fallbackTopUniverse;symbols=uniq([...symbols,...fallbackTopUniverse]).slice(0,36);const out=[];let next=0;const worker=async()=>{while(true){const idx=next++;if(idx>=symbols.length)return;const symbol=symbols[idx];try{const p=await chartData(symbol),m=p.meta||{};const s={name:m.longName||m.shortName||symbol,symbol,data:p.data,meta:m},z=analyse(p.data);if(z.sc>=90)out.push(s)}catch(e){}}};await Promise.all(Array.from({length:5},worker));out.sort((a,b)=>analyse(b.data).sc-analyse(a.data).sc);const top=out.slice(0,10);$('top10Date').textContent='Stand '+new Date().toLocaleDateString('de-DE');$('top10Grid').innerHTML=top.length?top.map(top10Card).join(''):'<div class="top10-empty">Heute wurden im geprüften Aktienuniversum keine Titel mit mindestens 90/100 gefunden. Der Scan wird beim nächsten Seitenaufruf erneut ausgeführt.</div>'}catch(e){$('top10Date').textContent='Scan nicht verfügbar';$('top10Grid').innerHTML='<div class="top10-error">Die Tagesübersicht konnte gerade nicht geladen werden. Die Einzelanalyse bleibt verfügbar.</div>'}finally{top10Busy=false}}
 $('form').onsubmit=async e=>{e.preventDefault();$('err').style.display='none';$('app').style.display='none';$('analyzeBtn').disabled=true;startProgress();stocks=[];try{const values=[$('wkn1').value.trim().toUpperCase(),$('wkn2').value.trim().toUpperCase(),$('wkn3').value.trim().toUpperCase()].filter(Boolean),unique=uniq(values);if(!unique.length)throw Error('Bitte mindestens eine WKN eingeben.');if(unique.length<values.length)throw Error('Bitte jede WKN nur einmal eingeben.');if(unique.length>3)throw Error('Es können maximal drei WKN analysiert werden.');setProgress(12,'Wertpapiere werden aufgelöst …',2);for(let i=0;i<unique.length;i++){const w=unique[i],start=15+i*(65/unique.length),r=await resolve(w,(p,s,step)=>{const scaled=start+(p/100)*(65/unique.length);setProgress(Math.min(80,scaled),s+' · Aktie '+(i+1)+'/'+unique.length,step)});stocks.push(r)}setProgress(82,'Technische Kennzahlen werden für alle Titel berechnet …',5);$('app').style.display='block';renderIndividuals();finishProgress()}catch(e){$('err').textContent=e.message;$('err').style.display='block';$('progressStatus').textContent='Analyse konnte nicht vollständig abgeschlossen werden.'}finally{$('analyzeBtn').disabled=false;$('load').style.display='none'}};
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');days=+b.dataset.d;if(stocks.length)renderIndividuals()});
 $('openAll').onclick=()=>document.querySelectorAll('.stock-group').forEach(x=>x.open=true);$('closeAll').onclick=()=>document.querySelectorAll('.stock-group').forEach(x=>x.open=false);
 $('top10Panel').addEventListener('toggle',()=>{if($('top10Panel').open&&$('top10Grid').querySelector('.top10-loading'))scanTop10()});
 scanTop10();
+</script>
+
+<div class="alert-modal" id="markModal" aria-hidden="true"><div class="alert-dialog">
+  <h3 id="markModalTitle">Titel markieren</h3><div class="muted" id="markModalMeta"></div>
+  <form class="alert-form" id="markForm">
+    <div><label for="markEmail">Empfänger-E-Mail</label><input id="markEmail" type="email" required placeholder="name@beispiel.at"></div>
+    <div class="alert-checks"><label><input id="markBuy" type="checkbox" checked> KAUFEN-Mail</label><label><input id="markSell" type="checkbox" checked> NICHT KAUFEN-Mail</label></div>
+    <div class="alert-warning">Die automatische Prüfung läuft im Browser. E-Mails werden versendet, solange diese Anwendung geöffnet ist. Für den Versand wird EmailJS verwendet; die Zugangsdaten werden nur lokal im Browser gespeichert.</div>
+    <div class="alert-dialog-actions"><button type="button" class="alert-btn" id="markCancel">Abbrechen</button><button type="button" class="alert-btn" id="markRemove">Markierung entfernen</button><button class="alert-btn primary" type="submit">Markieren & speichern</button></div>
+  </form>
+</div></div>
+<div class="alert-modal" id="mailModal" aria-hidden="true"><div class="alert-dialog">
+  <h3>✉️ E-Mail-Versand konfigurieren</h3><div class="muted">Kostenloser Versand über EmailJS. Es werden nur die öffentliche Client-Konfiguration und deine Markierungen lokal gespeichert.</div>
+  <form class="alert-form" id="mailForm">
+    <div><label for="mailPublicKey">EmailJS Public Key</label><input id="mailPublicKey" type="text" autocomplete="off" placeholder="public_xxxxx"></div>
+    <div><label for="mailServiceId">Service ID</label><input id="mailServiceId" type="text" autocomplete="off" placeholder="service_xxxxx"></div>
+    <div><label for="mailTemplateId">Template ID</label><input id="mailTemplateId" type="text" autocomplete="off" placeholder="template_xxxxx"></div>
+    <div class="muted">Das Template sollte mindestens die Variablen <strong>{{to_email}}</strong>, <strong>{{subject}}</strong>, <strong>{{message}}</strong>, <strong>{{symbol}}</strong> und <strong>{{score}}</strong> unterstützen.</div>
+    <div class="alert-status" id="mailStatus"></div>
+    <div class="alert-dialog-actions"><button type="button" class="alert-btn" id="mailCancel">Abbrechen</button><button type="button" class="alert-btn" id="mailTest">Testmail senden</button><button class="alert-btn primary" type="submit">Speichern</button></div>
+  </form>
+</div></div>
+
+
+<script>
+(()=>{
+const WATCH_KEY='aktpro_watchlist_v1', MAIL_KEY='aktpro_emailjs_v1';
+const readWatch=()=>{try{return JSON.parse(localStorage.getItem(WATCH_KEY)||'{}')}catch(e){return {}}};
+const writeWatch=x=>localStorage.setItem(WATCH_KEY,JSON.stringify(x));
+const readMail=()=>{try{return JSON.parse(localStorage.getItem(MAIL_KEY)||'{}')}catch(e){return {}}};
+const writeMail=x=>localStorage.setItem(MAIL_KEY,JSON.stringify(x));
+let modalKey=null, modalMeta=null;
+const el=id=>document.getElementById(id);
+function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function normalizeRec(score){return score>=68?'KAUFEN':score<=42?'NICHT KAUFEN':'BEOBACHTEN'}
+function currentScoreFromCard(card){const m=card.querySelector('.top10-score')?.textContent.match(/([0-9]+)\s*\/\s*100/);return m?Number(m[1]):null}
+function decorateTop10(){
+const grid=el('top10Grid'); if(!grid)return;
+grid.querySelectorAll('.top10-item').forEach(card=>{
+const score=currentScoreFromCard(card);
+if(score!==null && score<95){card.remove();return}
+const symbol=card.querySelector('.top10-symbol')?.textContent.trim()||'';
+if(!symbol)return;
+card.dataset.watchSymbol=symbol;
+if(!card.querySelector('.watch-btn')){
+const b=document.createElement('button'); b.type='button'; b.className='watch-btn'; b.textContent='🔔 Markieren';
+b.addEventListener('click',e=>{e.stopPropagation();openMark(symbol,card.querySelector('.top10-name')?.textContent.trim()||symbol,symbol,score||0)});
+card.appendChild(b);
+}
+syncButton(card.querySelector('.watch-btn'),symbol);
+});
+if(!grid.querySelector('.top10-item') && !grid.querySelector('.top10-loading') && !grid.querySelector('.top10-error')) grid.innerHTML='<div class="top10-empty">Heute wurden keine Titel mit mindestens 95/100 gefunden.</div>';
+}
+function decorateIndividuals(){
+document.querySelectorAll('#individuals .stock-group').forEach(group=>{
+const symbol=group.querySelector('.summary-symbol')?.textContent.trim()||'';
+const name=group.querySelector('.summary-name')?.textContent.trim()||symbol;
+const scoreText=group.querySelector('.summary-result')?.textContent||'';
+const score=Number(scoreText.match(/([0-9]+)\s*\/\s*100/)?.[1]||0);
+if(!symbol||group.querySelector('.watch-btn'))return;
+const b=document.createElement('button');b.type='button';b.className='watch-btn';b.textContent='🔔 Markieren';
+b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openMark(symbol,name,symbol,score)});
+group.querySelector('summary')?.appendChild(b);syncButton(b,symbol);
+});
+}
+function syncButton(btn,key){if(!btn)return;const w=readWatch();const on=!!w[key];btn.classList.toggle('marked',on);btn.textContent=on?'🔔 Markiert':'🔔 Markieren'}
+function refreshButtons(){document.querySelectorAll('.watch-btn').forEach(b=>syncButton(b,b.closest('[data-watch-symbol]')?.dataset.watchSymbol||b.closest('.stock-group')?.querySelector('.summary-symbol')?.textContent.trim()))}
+function openMark(key,name,symbol,score){
+modalKey=key;modalMeta={name,symbol,score};const w=readWatch()[key]||{};
+el('markModalTitle').textContent=(w?'Markierung bearbeiten: ':'Titel markieren: ')+name;el('markModalMeta').textContent=symbol+' · aktueller Score '+(score||'–')+'/100';el('markEmail').value=w.email||'';el('markBuy').checked=w.buy!==false;el('markSell').checked=w.sell!==false;el('markRemove').style.display=w?'inline-flex':'none';el('markModal').classList.add('show');el('markEmail').focus();
+}
+function closeModal(id){el(id)?.classList.remove('show')}
+function renderWatchList(){
+const panel=el('watchListPanel'),box=el('watchList'),w=readWatch(),keys=Object.keys(w);
+if(!keys.length){panel.style.display='none';box.innerHTML='';return}
+panel.style.display='block';box.innerHTML=keys.map(k=>{const x=w[k];return '<div class="watch-row"><div class="watch-main"><div class="watch-name">'+esc(x.name||k)+'</div><div class="watch-meta">'+esc(k)+' · '+esc(x.email||'')+'</div></div><div class="watch-state '+(x.lastRec==='KAUFEN'?'buy':x.lastRec==='NICHT KAUFEN'?'no':'watch')+'">'+esc(x.lastRec||'noch nicht geprüft')+'</div></div>'}).join('');
+}
+function mailReady(){const c=readMail();return !!(c.publicKey&&c.serviceId&&c.templateId&&window.emailjs)}
+function initMail(){const c=readMail();el('mailPublicKey').value=c.publicKey||'';el('mailServiceId').value=c.serviceId||'';el('mailTemplateId').value=c.templateId||'';if(c.publicKey&&window.emailjs){try{emailjs.init({publicKey:c.publicKey})}catch(e){}}}
+async function sendAlert(item,rec,score,price){
+if(!mailReady())return {ok:false,reason:'E-Mail-Versand ist noch nicht konfiguriert.'};
+const c=readMail();try{emailjs.init({publicKey:c.publicKey});await emailjs.send(c.serviceId,c.templateId,{to_email:item.email,subject:'AKT-Pro Alarm: '+rec+' – '+item.symbol,message:'AKT-Pro meldet '+rec+' für '+item.name+' ('+item.symbol+'). Score: '+Math.round(score)+'/100. Kurs: '+Number(price).toLocaleString('de-DE',{minimumFractionDigits:2}),symbol:item.symbol,score:Math.round(score),price:Number(price).toFixed(2),recommendation:rec,name:item.name});return {ok:true}}catch(e){return {ok:false,reason:e?.text||e?.message||'E-Mail konnte nicht gesendet werden.'}}
+}
+async function checkMarkedAlerts(){
+const w=readWatch(),keys=Object.keys(w);if(!keys.length)return;
+for(const key of keys){
+const item=w[key];try{const p=await chartData(item.symbol),z=analyse(p.data),rec=recFor(z.sc),price=z.c.at(-1),previous=item.lastRec;if(!item.lastRec){item.lastRec=rec;continue}if(rec!==previous&&(rec==='KAUFEN'&&item.buy!==false||rec==='NICHT KAUFEN'&&item.sell!==false)){const result=await sendAlert(item,rec,z.sc,price);item.lastAlert=result.ok?new Date().toISOString():item.lastAlert;item.lastError=result.ok?'':result.reason||''}item.lastRec=rec;item.lastScore=Math.round(z.sc);item.lastPrice=price}catch(e){item.lastError=e?.message||'Prüfung fehlgeschlagen'} }
+writeWatch(w);renderWatchList();
+}
+el('markForm')?.addEventListener('submit',e=>{e.preventDefault();if(!modalKey)return;const email=el('markEmail').value.trim();if(!email)return;const w=readWatch();const existing=w[modalKey]||{};w[modalKey]={...existing,key:modalKey,name:modalMeta.name,symbol:modalMeta.symbol,email,buy:el('markBuy').checked,sell:el('markSell').checked,lastRec:existing.lastRec||normalizeRec(Number(modalMeta.score)||0),createdAt:existing.createdAt||new Date().toISOString()};writeWatch(w);closeModal('markModal');renderWatchList();refreshButtons()});
+el('markRemove')?.addEventListener('click',()=>{if(!modalKey)return;const w=readWatch();delete w[modalKey];writeWatch(w);closeModal('markModal');renderWatchList();refreshButtons()});
+el('markCancel')?.addEventListener('click',()=>closeModal('markModal'));
+el('mailSettingsBtn')?.addEventListener('click',()=>{initMail();el('mailModal').classList.add('show');el('mailStatus').textContent=''});
+el('mailCancel')?.addEventListener('click',()=>closeModal('mailModal'));
+el('mailForm')?.addEventListener('submit',e=>{e.preventDefault();const c={publicKey:el('mailPublicKey').value.trim(),serviceId:el('mailServiceId').value.trim(),templateId:el('mailTemplateId').value.trim()};writeMail(c);initMail();el('mailStatus').textContent='Mail-Konfiguration gespeichert.'});
+el('mailTest')?.addEventListener('click',async()=>{const c={publicKey:el('mailPublicKey').value.trim(),serviceId:el('mailServiceId').value.trim(),templateId:el('mailTemplateId').value.trim()};const recipient=Object.values(readWatch())[0]?.email||prompt('An welche E-Mail-Adresse soll die Testmail gehen?','');if(!recipient){el('mailStatus').textContent='Keine Empfängeradresse vorhanden.';return}writeMail(c);if(!mailReady()){el('mailStatus').textContent='Bitte Public Key, Service ID und Template ID vollständig eintragen.';return}el('mailStatus').textContent='Testmail wird gesendet …';const r=await sendAlert({email:recipient,name:'AKT-Pro Test',symbol:'TEST'},'TEST',100,0);el('mailStatus').textContent=r.ok?'Testmail wurde gesendet.':'Fehler: '+r.reason});
+el('watchListBtn')?.addEventListener('click',()=>{renderWatchList();const panel=el('watchListPanel');panel.style.display=panel.style.display==='none'?'block':'none'});
+const observer=new MutationObserver(()=>{decorateTop10();decorateIndividuals();renderWatchList();refreshButtons()});
+observer.observe(el('top10Grid'),{childList:true,subtree:true});observer.observe(el('individuals'),{childList:true,subtree:true});
+decorateTop10();decorateIndividuals();renderWatchList();initMail();
+setTimeout(checkMarkedAlerts,2500);setInterval(checkMarkedAlerts,15*60*1000);
+})();
 </script>
 </body>
 </html>
