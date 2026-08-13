@@ -71,11 +71,14 @@ def fetch(candidate):
             if isinstance(c,(int,float)) and math.isfinite(c):rows.append((float(c),float(rawv[i] or 0) if i<len(rawv) else 0.0))
         if len(rows)<252:return None
         sc,rr=score(rows);current=rows[-1][0];previous=rows[-2][0]
-        return {'name':name,'symbol':symbol,'wkn':wkn,'score':sc,'price':current,'change':round((current/previous-1)*100,2),'rsi':round(rr,1)}
+        exchange={'SIE.DE':'XETRA','ALV.DE':'XETRA','SAP':'XETRA','AIR.PA':'PARIS','ASML':'AMSTERDAM','TSM':'NYSE','BRK-A':'NYSE','BRK-B':'NYSE'}.get(symbol,'NASDAQ' if symbol not in {'JPM','V','MA','MCD','KO','PG','WMT','JNJ','CAT','HON','LMT','PEP'} else 'NYSE')
+        return {'name':name,'symbol':symbol,'wkn':wkn,'exchange':exchange,'score':sc,'price':current,'change':round((current/previous-1)*100,2),'rsi':round(rr,1)}
     except Exception as exc:print('skip',symbol,exc);return None
 
 with ThreadPoolExecutor(max_workers=8) as pool:results=[f.result() for f in as_completed([pool.submit(fetch,c) for c in CANDIDATES])]
-items=[x for x in results if x];items.sort(key=lambda x:(-x['score'],-x['rsi'],x['symbol']));items=[x for x in items if x['score']>=90][:10]
-out={'generatedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'criteria':'Top 10 nach identischem AKTScore 0-100; Adjusted Close + Momentum + RSI + MACD + Volatilität + Volumen','items':items}
+items=[x for x in results if x]
+items.sort(key=lambda x:(-x['score'],-x['rsi'],x['symbol']))
+items=items[:10]
+out={'generatedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'criteria':'Top 10 der verfügbaren Titel nach AKTScore 0-100; Adjusted Close + Momentum + RSI + MACD + Volatilität + Volumen','items':items}
 with open('top10.json','w',encoding='utf-8') as f:json.dump(out,f,ensure_ascii=False,separators=(',',':'));f.write('\n')
 print('Top10:',[(x['symbol'],x['score']) for x in items])
