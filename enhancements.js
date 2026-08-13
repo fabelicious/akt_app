@@ -6,5 +6,6 @@
     .then(()=>load('./unified.js?v=3'))
     .then(()=>load('./top10-render-fix.js?v=1'))
     .then(()=>load('./consistency.js?v=2'))
+    .then(()=>load('./ui-fixes.js?v=1'))
     .catch(e=>console.error('AKT-Pro Erweiterungen konnten nicht geladen werden',e));
 })();
