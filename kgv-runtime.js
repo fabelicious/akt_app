@@ -26,14 +26,43 @@ async function yahoo(symbol){
 async function yahooPage(symbol){
   const page='https://finance.yahoo.com/quote/'+encodeURIComponent(symbol)+'/';
   const proxies=[u=>'https://corsproxy.io/?url='+encodeURIComponent(u),u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)];
+  for(const make of proxies){try{const html=await fetchText(make(page),5000);const patterns=[/"trailingPE"\s*:\s*\{?\s*"raw"\s*:\s*([0-9.]+)/i,/"forwardPE"\s*:\s*\{?\s*"raw"\s*:\s*([0-9.]+)/i,/"trailingPE"\s*:\s*([0-9.]+)/i,/"forwardPE"\s*:\s*([0-9.]+)/i];for(const re of patterns){const v=valid(html.match(re)?.[1]);if(v!==null)return v;}}catch(_){}}
+  return null;
+}
+
+function googleExchange(symbol){
+  const s=String(symbol||'').toUpperCase();
+  if(/\.DE$|\.F$/.test(s))return 'ETR';
+  if(/\.PA$/.test(s))return 'EPA';
+  if(/\.AS$/.test(s))return 'AMS';
+  if(/\.L$/.test(s))return 'LON';
+  if(/\.MI$/.test(s))return 'BIT';
+  if(/\.MC$/.test(s))return 'BME';
+  if(/\.SW$/.test(s))return 'SWX';
+  if(/\.VI$/.test(s))return 'VIE';
+  if(/\.T$/.test(s))return 'TYO';
+  if(/\.HK$/.test(s))return 'HKG';
+  if(/\.TO$/.test(s))return 'TSE';
+  if(/\.AX$/.test(s))return 'ASX';
+  if(/\.ST$/.test(s))return 'STO';
+  if(/\.OL$/.test(s))return 'OSL';
+  if(/\.CO$/.test(s))return 'CPH';
+  return 'NASDAQ';
+}
+
+async function googleFinance(symbol){
+  const raw=String(symbol||'').trim().toUpperCase();
+  const ticker=raw.replace(/\.(DE|F|PA|AS|L|MI|MC|SW|VI|T|HK|TO|AX|ST|OL|CO)$/,'');
+  const exchange=googleExchange(raw);
+  const page='https://www.google.com/finance/quote/'+encodeURIComponent(ticker)+':'+exchange;
+  const proxies=[u=>'https://corsproxy.io/?url='+encodeURIComponent(u),u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)];
   for(const make of proxies){
     try{
-      const html=await fetchText(make(page),5000);
+      const html=await fetchText(make(page),6000);
       const patterns=[
-        /"trailingPE"\s*:\s*\{?\s*"raw"\s*:\s*([0-9.]+)/i,
-        /"forwardPE"\s*:\s*\{?\s*"raw"\s*:\s*([0-9.]+)/i,
-        /"trailingPE"\s*:\s*([0-9.]+)/i,
-        /"forwardPE"\s*:\s*([0-9.]+)/i
+        /P\/E ratio[\s\S]{0,500}?([0-9]+(?:\.[0-9]+)?)/i,
+        /P\/E\s*(?:ratio)?[\s\S]{0,300}?([0-9]+(?:\.[0-9]+)?)/i,
+        /priceEarningsRatio[^0-9]{0,100}([0-9]+(?:\.[0-9]+)?)/i
       ];
       for(const re of patterns){const m=html.match(re);const v=valid(m?.[1]);if(v!==null)return v;}
     }catch(_){ }
@@ -45,7 +74,7 @@ async function getKgv(symbol){
   const key=String(symbol||'').trim().toUpperCase();if(!key)return null;
   const old=cache.get(key);if(old&&Date.now()-old.time<CACHE_TTL)return old.value;
   if(pending.has(key))return pending.get(key);
-  const p=(async()=>{let v=await yahoo(key);if(v===null)v=await yahooPage(key);return v;})().catch(()=>null).then(v=>{cache.set(key,{time:Date.now(),value:v});return v}).finally(()=>pending.delete(key));
+  const p=(async()=>{let v=await yahoo(key);if(v===null)v=await yahooPage(key);if(v===null)v=await googleFinance(key);return v;})().catch(()=>null).then(v=>{cache.set(key,{time:Date.now(),value:v});return v}).finally(()=>pending.delete(key));
   pending.set(key,p);return p;
 }
 function format(v){return Number(v).toLocaleString('de-DE',{minimumFractionDigits:0,maximumFractionDigits:2});}
