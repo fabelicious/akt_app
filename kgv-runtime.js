@@ -1,105 +1,149 @@
 (function(){
 'use strict';
 
-const cache=new Map(),pending=new Map();
-const TTL=6*60*60*1000;
+/*
+ * AKT-Pro – unabhängiges KGV-Modul
+ *
+ * Dieses Modul darf die bestehende Analyse NICHT beeinflussen.
+ * Es liest ausschließlich das bereits gerenderte Symbol und ergänzt
+ * bei erfolgreicher Abfrage eine optionale KGV-Anzeige.
+ */
 
-async function json(url,timeout=3500){
-  const c=new AbortController(),t=setTimeout(()=>c.abort(),timeout);
-  try{
-    const r=await fetch(url,{cache:'no-store',signal:c.signal});
-    if(!r.ok)throw Error('HTTP '+r.status);
-    return await r.json();
-  }finally{clearTimeout(t)}
+const CACHE_TTL=6*60*60*1000;
+const cache=new Map();
+const pending=new Map();
+
+function request(url,timeout=4000){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),timeout);
+  return fetch(url,{cache:'no-store',signal:controller.signal})
+    .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()})
+    .finally(()=>clearTimeout(timer));
 }
 
-async function quote(symbol){
-  const base='https://query1.finance.yahoo.com/v7/finance/quote?symbols='+encodeURIComponent(symbol);
-  for(const prefix of ['https://corsproxy.io/?url=','https://api.allorigins.win/raw?url=']){
+async function getFromYahoo(symbol){
+  const quoteUrl='https://query1.finance.yahoo.com/v7/finance/quote?symbols='+encodeURIComponent(symbol);
+  const summaryUrl='https://query2.finance.yahoo.com/v10/finance/quoteSummary/'+encodeURIComponent(symbol)+'?modules=summaryDetail,defaultKeyStatistics,financialData';
+  const proxies=[
+    u=>'https://corsproxy.io/?url='+encodeURIComponent(u),
+    u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)
+  ];
+
+  for(const proxy of proxies){
     try{
-      const j=await json(prefix+encodeURIComponent(base));
-      const q=j?.quoteResponse?.result?.[0];
-      if(q)return q;
-    }catch(_){}
+      const q=await request(proxy(quoteUrl),3500);
+      const row=q?.quoteResponse?.result?.[0];
+      if(row){
+        const trailing=Number(row.trailingPE);
+        const forward=Number(row.forwardPE);
+        if(Number.isFinite(trailing)&&trailing>0&&trailing<10000)return trailing;
+        if(Number.isFinite(forward)&&forward>0&&forward<10000)return forward;
+      }
+    }catch(_){ }
+  }
+
+  for(const proxy of proxies){
+    try{
+      const q=await request(proxy(summaryUrl),3500);
+      const row=q?.quoteSummary?.result?.[0];
+      const values=[
+        row?.summaryDetail?.trailingPE?.raw,
+        row?.defaultKeyStatistics?.trailingPE?.raw,
+        row?.defaultKeyStatistics?.forwardPE?.raw,
+        row?.financialData?.forwardPE?.raw
+      ];
+      for(const raw of values){
+        const n=Number(raw);
+        if(Number.isFinite(n)&&n>0&&n<10000)return n;
+      }
+    }catch(_){ }
   }
   return null;
 }
 
-async function summary(symbol){
-  const base='https://query2.finance.yahoo.com/v10/finance/quoteSummary/'+encodeURIComponent(symbol)+'?modules=summaryDetail,defaultKeyStatistics,financialData';
-  for(const prefix of ['https://corsproxy.io/?url=','https://api.allorigins.win/raw?url=']){
-    try{
-      const j=await json(prefix+encodeURIComponent(base));
-      const r=j?.quoteSummary?.result?.[0];
-      if(r)return r;
-    }catch(_){}
-  }
-  return null;
-}
-
-async function getKgv(symbol){
+function getKgv(symbol){
   const key=String(symbol||'').trim().toUpperCase();
-  if(!key)return null;
-  const c=cache.get(key);
-  if(c&&Date.now()-c.ts<TTL)return c.value;
+  if(!key)return Promise.resolve(null);
+
+  const old=cache.get(key);
+  if(old&&Date.now()-old.time<CACHE_TTL)return Promise.resolve(old.value);
   if(pending.has(key))return pending.get(key);
 
-  const p=(async()=>{
-    try{
-      const q=await quote(key);
-      let value=Number(q?.trailingPE);
-      if(!Number.isFinite(value)||value<=0)value=Number(q?.forwardPE);
-      if(!Number.isFinite(value)||value<=0){
-        const s=await summary(key);
-        value=Number(s?.summaryDetail?.trailingPE?.raw);
-        if(!Number.isFinite(value)||value<=0)value=Number(s?.defaultKeyStatistics?.forwardPE?.raw);
-      }
-      value=Number.isFinite(value)&&value>0&&value<10000?value:null;
-      cache.set(key,{ts:Date.now(),value});
-      return value;
-    }catch(_){
-      cache.set(key,{ts:Date.now(),value:null});
-      return null;
-    }finally{pending.delete(key)}
-  })();
+  const p=getFromYahoo(key).catch(()=>null).then(value=>{
+    cache.set(key,{time:Date.now(),value});
+    return value;
+  }).finally(()=>pending.delete(key));
+
   pending.set(key,p);
   return p;
 }
 
-function fmt(v){return Number(v).toLocaleString('de-DE',{minimumFractionDigits:0,maximumFractionDigits:2})}
-
-async function update(group){
-  if(!group||!document.body.contains(group))return;
-  const symbol=group.querySelector('.summary-main span')?.textContent?.trim();
-  if(!symbol)return;
-  const value=await getKgv(symbol);
-  if(value==null||!document.body.contains(group))return;
-  const card=group.querySelector('.card.wide');
-  if(!card)return;
-  let box=card.querySelector('.kgv-value');
-  if(!box){
-    box=document.createElement('span');
-    box.className='kgv-value';
-    box.style.cssText='display:inline-block;margin-left:12px;font-size:14px;font-weight:800;white-space:nowrap;vertical-align:middle';
-    card.querySelector('.score')?.after(box);
-  }
-  box.textContent='KGV: '+fmt(value);
+function format(value){
+  return Number(value).toLocaleString('de-DE',{minimumFractionDigits:0,maximumFractionDigits:2});
 }
 
-function scan(){document.querySelectorAll('.stock-group').forEach(g=>update(g).catch(()=>{}))}
+function getSymbol(group){
+  const el=group.querySelector('.summary-main span');
+  if(!el)return '';
+  return String(el.textContent||'').trim();
+}
+
+function addKgv(group,value){
+  if(!group||!document.body.contains(group))return;
+  if(!Number.isFinite(Number(value))||Number(value)<=0)return;
+
+  const score=group.querySelector('.card.wide .score');
+  if(!score)return;
+
+  let node=score.parentElement.querySelector('.kgv-value');
+  if(!node){
+    node=document.createElement('span');
+    node.className='kgv-value';
+    node.style.cssText='display:inline-block;margin-left:12px;font-size:14px;font-weight:800;white-space:nowrap';
+    score.insertAdjacentElement('afterend',node);
+  }
+  node.textContent='KGV: '+format(value);
+}
+
+function updateGroup(group){
+  const symbol=getSymbol(group);
+  if(!symbol)return;
+  getKgv(symbol).then(value=>addKgv(group,value)).catch(()=>{});
+}
+
+function scan(){
+  try{document.querySelectorAll('.stock-group').forEach(updateGroup)}catch(_){ }
+}
 
 function init(){
   const root=document.getElementById('individuals');
   if(!root)return;
-  let timer=0;
-  const schedule=()=>{clearTimeout(timer);timer=setTimeout(scan,180)};
-  new MutationObserver(m=>{
-    if(m.some(x=>Array.from(x.addedNodes||[]).some(n=>n.nodeType===1&&(n.classList?.contains('stock-group')||n.querySelector?.('.stock-group')))))schedule();
-  }).observe(root,{childList:true});
-  schedule();
-  document.addEventListener('click',e=>{if(e.target.closest('.tab,.top10-detail'))schedule()});
+
+  let timer=null;
+  function schedule(delay=250){
+    clearTimeout(timer);
+    timer=setTimeout(scan,delay);
+  }
+
+  const observer=new MutationObserver(records=>{
+    const changed=records.some(r=>Array.from(r.addedNodes||[]).some(n=>
+      n.nodeType===1&&(n.classList?.contains('stock-group')||n.querySelector?.('.stock-group'))
+    ));
+    if(changed)schedule(150);
+  });
+  observer.observe(root,{childList:true});
+
+  schedule(400);
+  document.addEventListener('click',e=>{
+    if(e.target.closest('.tab,.top10-detail'))schedule(500);
+  });
 }
 
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',init,{once:true});
+}else{
+  init();
+}
+
 window.AKTKGV={get:getKgv,scan};
 })();
