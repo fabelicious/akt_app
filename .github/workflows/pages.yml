@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -40,18 +40,6 @@ jobs:
           assert all(isinstance(x.get('score'),(int,float)) for x in items), 'Invalid score'
           print('Top10:', [(x['symbol'],x['score']) for x in items])
           PY
-
-      - name: Persist generated Top 10
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add top10.json
-          if git diff --cached --quiet; then
-            echo 'Top10 unchanged'
-          else
-            git commit -m 'chore: refresh deterministic top 10 data'
-            git push
-          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
