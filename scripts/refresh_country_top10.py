@@ -10,18 +10,20 @@ def extra_fetch(c):
  return x
 with ThreadPoolExecutor(max_workers=8) as pool:extras=[f.result() for f in as_completed([pool.submit(extra_fetch,c) for c in EXTRA])]
 results=[x for x in base_results if x]+[x for x in extras if x]
-results=[x for x in results if isinstance(x.get('score'),(int,float)) and x['score']>=90]
+results=[x for x in results if isinstance(x.get('score'),(int,float)) and x['score']>=85]
 def country(symbol):
- s=str(symbol).upper();suffix={'.DE':'DE','.F':'DE','.PA':'FR','.SW':'CH','.L':'GB','.AS':'NL','.MI':'IT','.MC':'ES','.ST':'SE','.OL':'NO','.CO':'DK','.T':'JP','.HK':'HK','.TO':'CA','.AX':'AU','.NS':'IN','.BO':'IN','.KS':'KR','.KQ':'KR','.SA':'BR'}
+ s=str(symbol).upper();suffix={'.DE':'DE','.F':'DE','.PA':'FR','.SW':'CH','.L':'GB','.AS':'NL','.MI':'IT','.MC':'ES','.ST':'SE','.OL':'NO','.CO':'DK','.HE':'FI','.T':'JP','.HK':'HK','.TO':'CA','.AX':'AU','.NS':'IN','.BO':'IN','.KS':'KR','.KQ':'KR','.SA':'BR'}
  for k,v in suffix.items():
   if s.endswith(k):return v
+ if s=='TSM':return 'TW'
+ if s in {'BABA','BIDU','PDD','JD'}:return 'CN'
  return 'US'
 groups=defaultdict(list)
 for x in results:
  y=dict(x);y['country']=y.get('country') or country(x.get('symbol',''));groups[y['country']].append(y)
 for k in groups:groups[k]=sorted(groups[k],key=lambda x:(-x['score'],-float(x.get('rsi',0)),x.get('symbol','')))[:10]
 world=sorted(results,key=lambda x:(-x['score'],-float(x.get('rsi',0)),x.get('symbol','')))[:10]
-out={'generatedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'criteria':'Je Land maximal 10 Titel; nur AKTScore >=90/100; exakt dieselbe Score-Berechnung wie die Einzelanalyse.','countries':dict(groups),'items':world}
+out={'generatedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'criteria':'Je Land maximal 10 Titel; nur AKTScore >=85/100; exakt dieselbe Score-Berechnung wie die Einzelanalyse.','countries':dict(groups),'items':world}
 with open('country-top10.json','w',encoding='utf-8') as f:json.dump(out,f,ensure_ascii=False,separators=(',',':'));f.write('\n')
-with open('top10.json','w',encoding='utf-8') as f:json.dump({'generatedAt':out['generatedAt'],'criteria':'Nur Titel mit AKTScore >=90/100; identisches Scoring wie Einzelanalyse; weltweite Kandidatenbasis; maximal 10 Titel.','items':world},f,ensure_ascii=False,separators=(',',':'));f.write('\n')
+with open('top10.json','w',encoding='utf-8') as f:json.dump({'generatedAt':out['generatedAt'],'criteria':'Nur Titel mit AKTScore >=85/100; identisches Scoring wie Einzelanalyse; weltweite Kandidatenbasis; maximal 10 Titel.','items':world},f,ensure_ascii=False,separators=(',',':'));f.write('\n')
 print('Country Top10:',{k:len(v) for k,v in groups.items()})
