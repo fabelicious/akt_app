@@ -7,7 +7,7 @@ on:
     paths:
       - 'scripts/refresh_top10.py'
       - 'scripts/refresh_country_top10.py'
-      - 'country-top10.js'
+      - 'top10-score-sync.js'
       - '.github/workflows/top10.yml'
 permissions:
   contents: write
@@ -22,30 +22,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Preserve previous valid Top 10 snapshot
-        run: cp top10.json /tmp/top10-prev.json
-      - name: Refresh global Top 10 from free Yahoo Finance chart data
-        run: python scripts/refresh_top10.py
-      - name: Reject incomplete global scan caused by transient data failures
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          current=json.loads(Path('top10.json').read_text())
-          previous=json.loads(Path('/tmp/top10-prev.json').read_text())
-          cur=[x for x in current.get('items',[]) if float(x.get('score',0))>=90]
-          old=[x for x in previous.get('items',[]) if float(x.get('score',0))>=90]
-          if len(cur)<len(old):
-              current['items']=old[:10]
-              current['criteria']='Top 10 nach identischem AKTScore 0-100; nur Titel mit Score >=90/100; vorheriger gültiger Snapshot wird bei unvollständigem Datenabruf beibehalten.'
-              Path('top10.json').write_text(json.dumps(current,ensure_ascii=False,separators=(',',':'))+'\n')
-              print(f'Incomplete scan ({len(cur)} >=90) -> preserved previous valid snapshot ({len(old)} >=90).')
-          else:
-              print(f'Valid scan: {len(cur)} titles >=90.')
-          PY
-      - name: Build country Top 10 using the identical scoring engine
+      - name: Refresh global and country Top 10
         run: python scripts/refresh_country_top10.py
-      - name: Commit Top 10 and country Top 10
+      - name: Commit Top 10 data
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
