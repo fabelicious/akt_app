@@ -1,0 +1,35 @@
+name: Refresh WKN map
+on:
+  schedule:
+    - cron: '43 3 * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/refresh_wkn_map.py'
+      - 'scripts/refresh_top10.py'
+      - '.github/workflows/wkn-map.yml'
+permissions:
+  contents: write
+concurrency:
+  group: wkn-map-refresh
+  cancel-in-progress: true
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Build daily WKN map
+        env:
+          OPENFIGI_API_KEY: ${{ secrets.OPENFIGI_API_KEY }}
+        run: python scripts/refresh_wkn_map.py
+      - name: Commit WKN map
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add wkn-map.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'chore: refresh daily WKN map'
+          git push
