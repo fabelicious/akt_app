@@ -2,54 +2,19 @@
 'use strict';
 
 const copy=async(value,el)=>{let ok=false;try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(value);ok=true}}catch(_){}if(!ok){try{const ta=document.createElement('textarea');ta.value=value;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();ok=document.execCommand('copy');ta.remove()}catch(_){}}if(el){const old=el.textContent;el.textContent=ok?'✓ kopiert':'Kopieren nicht möglich';setTimeout(()=>el.textContent=old,1200)}};
-
 function wireWkn(){const grid=document.getElementById('top10Grid');if(!grid||grid.dataset.wknwired)return;grid.dataset.wknwired='1';const mark=()=>grid.querySelectorAll('.top10-wkn').forEach(w=>{w.removeAttribute('title');w.style.cursor='pointer';w.dataset.wknCopy=(w.textContent||'').replace(/^WKN\s*/i,'').trim();w.setAttribute('title','Klicken zum Kopieren')});new MutationObserver(mark).observe(grid,{childList:true,subtree:true});grid.addEventListener('click',e=>{const w=e.target.closest('.top10-wkn');if(w&&w.dataset.wknCopy)copy(w.dataset.wknCopy,w)});mark()}
-
 function addClearCache(){if(document.getElementById('clearCacheBtn'))return;const host=document.querySelector('.group-controls .group-actions');if(!host)return;const b=document.createElement('button');b.type='button';b.id='clearCacheBtn';b.className='action-btn';b.textContent='Cache löschen';b.title='Lokalen Analyse- und Browsercache löschen';b.addEventListener('click',()=>{try{localStorage.clear();sessionStorage.clear()}catch(_){};location.reload()});host.appendChild(b)}
-
 const rangeCache=new Map();
-async function rangeData(symbol,days){
-  const key=String(symbol).toUpperCase()+'|'+days,hit=rangeCache.get(key);if(hit)return hit;
-  const end=Math.floor(Date.now()/1000),start=end-Math.ceil(days*1.15)*86400;
-  const url='https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(symbol)+'?period1='+start+'&period2='+end+'&interval=1d&events=history&includeAdjustedClose=true';
-  const get=async u=>{const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);return r.json()};
-  let z;try{z=(await get(url)).chart?.result?.[0]}catch(_){z=(await get('https://corsproxy.io/?url='+encodeURIComponent(url))).chart?.result?.[0]}
-  if(!z)throw Error('Keine Kursdaten');
-  const q=z.indicators?.quote?.[0]||{},adj=z.indicators?.adjclose?.[0]?.adjclose||[],vol=q.volume||[];
-  const data=(z.timestamp||[]).map((t,i)=>({d:new Date(t*1000),c:Number.isFinite(adj[i])?adj[i]:q.close?.[i],v:Number.isFinite(vol[i])?vol[i]:0})).filter(x=>Number.isFinite(x.c)).slice(-days);
-  if(data.length<20)throw Error('Zu wenig Kursdaten');
-  rangeCache.set(key,data);if(rangeCache.size>20)rangeCache.delete(rangeCache.keys().next().value);return data;
-}
-
+async function rangeData(symbol,days){const key=String(symbol).toUpperCase()+'|'+days,hit=rangeCache.get(key);if(hit)return hit;const end=Math.floor(Date.now()/1000),start=end-Math.ceil(days*1.15)*86400,url='https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(symbol)+'?period1='+start+'&period2='+end+'&interval=1d&events=history&includeAdjustedClose=true';const get=async u=>{const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);return r.json()};let z;try{z=(await get(url)).chart?.result?.[0]}catch(_){z=(await get('https://corsproxy.io/?url='+encodeURIComponent(url))).chart?.result?.[0]}if(!z)throw Error('Keine Kursdaten');const q=z.indicators?.quote?.[0]||{},adj=z.indicators?.adjclose?.[0]?.adjclose||[],vol=q.volume||[];const data=(z.timestamp||[]).map((t,i)=>({d:new Date(t*1000),c:Number.isFinite(adj[i])?adj[i]:q.close?.[i],v:Number.isFinite(vol[i])?vol[i]:0})).filter(x=>Number.isFinite(x.c)).slice(-days);if(data.length<20)throw Error('Zu wenig Kursdaten');rangeCache.set(key,data);if(rangeCache.size>20)rangeCache.delete(rangeCache.keys().next().value);return data}
 function sma(values,n){return values.map((_,i)=>i<n-1?null:values.slice(0,i+1).reduce((a,b)=>a+b,0)/n)}
 function rsi(values,n=14){return values.map((_,i)=>{if(i<n)return null;let gain=0,loss=0;for(let j=i-n+1;j<=i;j++){const d=values[j]-values[j-1];gain+=Math.max(d,0);loss+=Math.max(-d,0)}return loss===0?100:100-100/(1+gain/loss)})}
 function ema(values,n){if(values.length<n)return[];const k=2/(n+1);let e=values.slice(0,n).reduce((a,b)=>a+b,0)/n,out=[e];for(let i=n;i<values.length;i++){e=values[i]*k+e*(1-k);out.push(e)}return out}
 function macd(values){if(values.length<35)return{m:[],s:[]};const e12=ema(values,12),e26=ema(values,26),m=[];for(let i=0;i<e26.length;i++)m.push(e12[i+14]-e26[i]);const s=ema(m,9);return{m:m.map((v,i)=>i<8?null:v),s:s.map((v,i)=>i<8?null:v)}}
-
 function chart(id){const el=document.getElementById(id);return el&&window.Chart?Chart.getChart(el):null}
 function redrawChart(canvasId,type,labels,datasets,options){const old=chart(canvasId);if(old)old.destroy();const el=document.getElementById(canvasId);if(!el)return;new Chart(el,{type,data:{labels,datasets},options:Object.assign({responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false}},options||{})})}
-
-async function updateRange(days){
-  const groups=[...document.querySelectorAll('#individuals .stock-group')];
-  if(!groups.length)return;
-  await Promise.all(groups.map(async(group,i)=>{
-    const symbol=group.querySelector('.summary-main span')?.textContent?.trim();if(!symbol)return;
-    try{
-      const data=await rangeData(symbol,days),a=data.map(x=>x.c),labels=data.map(x=>x.d.toLocaleDateString('de-DE'));
-      redrawChart('price-'+i,'line',labels,[{label:'Kurs',data:a,pointRadius:0,borderWidth:2},{label:'SMA 20',data:sma(a,20),pointRadius:0},{label:'SMA 50',data:sma(a,50),pointRadius:0},{label:'SMA 200',data:sma(a,200),pointRadius:0}]);
-      redrawChart('rsi-'+i,'line',labels,[{label:'RSI 14',data:rsi(a),pointRadius:0,borderWidth:2},{label:'70',data:labels.map(()=>70),pointRadius:0},{label:'30',data:labels.map(()=>30),pointRadius:0}],{scales:{y:{min:0,max:100}}});
-      const m=macd(a);redrawChart('macd-'+i,'line',labels,[{label:'MACD',data:m.m,pointRadius:0,borderWidth:2},{label:'Signal',data:m.s,pointRadius:0}]);
-    }catch(_){/* bestehende Darstellung bleibt erhalten */}
-  }));
-}
-
-function wireRanges(){
-  document.querySelectorAll('.tabs .tab').forEach(btn=>{if(btn.dataset.rangewired)return;btn.dataset.rangewired='1';btn.addEventListener('click',async()=>{
-    const days=Number(btn.dataset.d)||180;
-    document.querySelectorAll('.tabs .tab').forEach(x=>x.classList.toggle('active',x===btn));
-    btn.disabled=true;try{await updateRange(days)}finally{btn.disabled=false}
-  })});
-}
-
-window.addEventListener('DOMContentLoaded',()=>{wireWkn();addClearCache();wireRanges();new MutationObserver(()=>{wireWkn();addClearCache();wireRanges()}).observe(document.body,{childList:true,subtree:true})});
+async function updateRange(days){const groups=[...document.querySelectorAll('#individuals .stock-group')];if(!groups.length)return;await Promise.all(groups.map(async(group,i)=>{const symbol=group.querySelector('.summary-main span')?.textContent?.trim();if(!symbol)return;try{const data=await rangeData(symbol,days),a=data.map(x=>x.c),labels=data.map(x=>x.d.toLocaleDateString('de-DE'));redrawChart('price-'+i,'line',labels,[{label:'Kurs',data:a,pointRadius:0,borderWidth:2},{label:'SMA 20',data:sma(a,20),pointRadius:0},{label:'SMA 50',data:sma(a,50),pointRadius:0},{label:'SMA 200',data:sma(a,200),pointRadius:0}]);redrawChart('rsi-'+i,'line',labels,[{label:'RSI 14',data:rsi(a),pointRadius:0,borderWidth:2},{label:'70',data:labels.map(()=>70),pointRadius:0},{label:'30',data:labels.map(()=>30),pointRadius:0}],{scales:{y:{min:0,max:100}}});const m=macd(a);redrawChart('macd-'+i,'line',labels,[{label:'MACD',data:m.m,pointRadius:0,borderWidth:2},{label:'Signal',data:m.s,pointRadius:0}])}catch(_){}}))}
+function wireRanges(){document.querySelectorAll('.tabs .tab').forEach(btn=>{if(btn.dataset.rangewired)return;btn.dataset.rangewired='1';btn.addEventListener('click',async()=>{const days=Number(btn.dataset.d)||180;document.querySelectorAll('.tabs .tab').forEach(x=>x.classList.toggle('active',x===btn));btn.disabled=true;try{await updateRange(days)}finally{btn.disabled=false}})})}
+function openManualAnalyses(){const groups=[...document.querySelectorAll('#individuals .stock-group')];if(groups.length>1)groups.forEach(g=>{g.open=true})}
+async function syncTop10Scores(){const grid=document.getElementById('top10Grid');if(!grid||!window.AKTScoreModel||grid.dataset.scoresynced)return;const items=[...grid.querySelectorAll('.top10-item')];if(!items.length)return;grid.dataset.scoresynced='1';await Promise.all(items.map(async item=>{const symbol=item.querySelector('.top10-symbol')?.textContent?.trim();const scoreEl=item.querySelector('.top10-score');if(!symbol||!scoreEl)return;try{const data=await rangeData(symbol,1900);const z=AKTScoreModel.analyse(data);scoreEl.textContent=z.score+'/100';item.dataset.score=String(z.score)}catch(_){}})))}
+window.addEventListener('DOMContentLoaded',()=>{wireWkn();addClearCache();wireRanges();openManualAnalyses();syncTop10Scores();new MutationObserver(()=>{wireWkn();addClearCache();wireRanges();openManualAnalyses();syncTop10Scores()}).observe(document.body,{childList:true,subtree:true})});
 })();
