@@ -11,11 +11,10 @@ function styles(){
     .top10-item>div:last-child{margin-top:auto!important;padding-top:8px;min-width:0}
     .top10-item .top10-name{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .top10-item .top10-buy{width:100%;box-sizing:border-box}
-    .top10-analysis-btn,.top10-copy-wkn,.wkn-copy{border:0;border-radius:7px;cursor:pointer;font-weight:800}
+    .top10-analysis-btn{border:0;border-radius:7px;cursor:pointer;font-weight:800}
     .top10-analysis-btn{display:block;width:100%;margin-top:8px;padding:8px 9px;background:#166534;color:#dcfce7;font-size:10px;line-height:1.2;box-sizing:border-box}
     .top10-analysis-btn:hover{filter:brightness(1.08)}
-    .top10-copy-wkn{padding:3px 6px;margin-left:4px;background:#334155;color:#fff;font-size:10px}
-    .wkn-copy{background:transparent;color:#fff;padding:0;text-decoration:underline;font-size:11px}
+    .wkn-copy{border:0;background:transparent;color:#fff;padding:0;text-decoration:underline;font-size:11px;font-weight:800;cursor:pointer}
     .top10-external-detail{display:none;margin:12px 0 0;padding:0;border-radius:16px;background:#fff;color:#172033;overflow:hidden}
     .top10-external-detail.is-open{display:block}
     .top10-external-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 15px;background:#111827;color:#fff}
@@ -47,7 +46,7 @@ function ensureExternalDetail(){
 }
 function card(x,i){
   const score=Number(x.score)||0,sym=String(x.symbol||'').toUpperCase(),name=x.name||sym,wkn=String(x.wkn||'');
-  return `<article class="top10-item" data-symbol="${esc(sym)}" data-wkn="${esc(wkn)}"><div><div class="top10-rank">#${i+1}</div><div class="top10-name" title="${esc(name)}">${esc(name)}</div><div class="top10-symbol">${esc(sym)}</div><div class="top10-wkn">WKN: ${wkn?`<button type="button" class="wkn-copy" data-wkn="${esc(wkn)}">${esc(wkn)}</button> <button type="button" class="top10-copy-wkn" aria-label="WKN kopieren">Kopieren</button>`:'—'}</div></div><div><div class="top10-score">${Math.round(score)}/100</div><div class="top10-meta"><span>${x.price!=null?Number(x.price).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}):''}</span><span>${x.change==null?'':(Number(x.change)>=0?'+':'')+Number(x.change).toFixed(2)+'%'}</span></div><div class="top10-buy">KAUFEN · 90+ erreicht</div><button type="button" class="top10-analysis-btn">+ Detailanalyse</button></div></article>`
+  return `<article class="top10-item" data-symbol="${esc(sym)}" data-wkn="${esc(wkn)}"><div><div class="top10-rank">#${i+1}</div><div class="top10-name" title="${esc(name)}">${esc(name)}</div><div class="top10-symbol">${esc(sym)}</div><div class="top10-wkn">WKN: ${wkn?`<button type="button" class="wkn-copy" data-wkn="${esc(wkn)}" title="WKN kopieren">${esc(wkn)}</button>`:'—'}</div></div><div><div class="top10-score">${Math.round(score)}/100</div><div class="top10-meta"><span>${x.price!=null?Number(x.price).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}):''}</span><span>${x.change==null?'':(Number(x.change)>=0?'+':'')+Number(x.change).toFixed(2)+'%'}</span></div><div class="top10-buy">KAUFEN · 90+ erreicht</div><button type="button" class="top10-analysis-btn">+ Detailanalyse</button></div></article>`
 }
 function copy(btn,wkn){
   const done=()=>{const old=btn.textContent;btn.textContent='Kopiert ✓';setTimeout(()=>btn.textContent=old,1200)};
@@ -84,7 +83,6 @@ window.renderTop10Enhanced=function(j){
   if(!out.length){grid.innerHTML='<div class="top10-empty">Keine Top-10-Daten verfügbar.</div>';return}
   grid.innerHTML=out.map(card).join('');
   grid.querySelectorAll('.top10-analysis-btn').forEach(b=>b.addEventListener('click',()=>openDetail(b.closest('.top10-item'))));
-  grid.querySelectorAll('.top10-copy-wkn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();copy(b,b.closest('.top10-item').dataset.wkn)}));
   grid.querySelectorAll('.wkn-copy').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();copy(b,b.dataset.wkn)}));
 };
 })();
