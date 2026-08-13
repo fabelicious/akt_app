@@ -4,9 +4,9 @@ ns=runpy.run_path('scripts/refresh_top10.py')
 results=[x for x in ns.get('results',[]) if x and isinstance(x.get('score'),(int,float)) and x['score']>=90]
 def country(symbol):
  s=str(symbol).upper()
- suffix={' .DE':'DE','.F':'DE','.PA':'FR','.SW':'CH','.L':'GB','.AS':'NL','.MI':'IT','.MC':'ES','.ST':'SE','.OL':'NO','.CO':'DK','.T':'JP','.HK':'HK','.TO':'CA','.AX':'AU'}
+ suffix={'.DE':'DE','.F':'DE','.PA':'FR','.SW':'CH','.L':'GB','.AS':'NL','.MI':'IT','.MC':'ES','.ST':'SE','.OL':'NO','.CO':'DK','.T':'JP','.HK':'HK','.TO':'CA','.AX':'AU'}
  for k,v in suffix.items():
-  if s.endswith(k.strip()): return v
+  if s.endswith(k): return v
  return 'US'
 groups=defaultdict(list)
 for x in results:
