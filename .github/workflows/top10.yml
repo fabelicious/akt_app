@@ -20,8 +20,27 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+      - name: Preserve previous valid Top 10 snapshot
+        run: cp top10.json /tmp/top10-prev.json
       - name: Refresh Top 10 from free Yahoo Finance chart data
         run: python scripts/refresh_top10.py
+      - name: Reject incomplete scan caused by transient data failures
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          current=json.loads(Path('top10.json').read_text())
+          previous=json.loads(Path('/tmp/top10-prev.json').read_text())
+          cur=[x for x in current.get('items',[]) if float(x.get('score',0))>=90]
+          old=[x for x in previous.get('items',[]) if float(x.get('score',0))>=90]
+          if len(cur)<len(old):
+              current['items']=old[:10]
+              current['criteria']='Top 10 nach identischem AKTScore 0-100; nur Titel mit Score >=90/100; vorheriger gültiger Snapshot wird bei unvollständigem Datenabruf beibehalten.'
+              Path('top10.json').write_text(json.dumps(current,ensure_ascii=False,separators=(',',':'))+'\n')
+              print(f'Incomplete scan ({len(cur)} >=90) -> preserved previous valid snapshot ({len(old)} >=90).')
+          else:
+              print(f'Valid scan: {len(cur)} titles >=90.')
+          PY
       - name: Commit only when changed
         run: |
           git config user.name 'github-actions[bot]'
