@@ -81,15 +81,45 @@
     root.querySelectorAll('.stock-group .sub').forEach(el=>{if(el.dataset.copyReady)return;const m=el.textContent.match(/WKN\s+([A-Z0-9]+)/i);if(!m)return;const wkn=m[1].toUpperCase(),text=el.textContent,idx=text.toUpperCase().lastIndexOf('WKN '+wkn);if(idx<0)return;el.textContent='';el.append(document.createTextNode(text.slice(0,idx)));const span=document.createElement('span');span.textContent='WKN '+wkn;span.title='Klicken zum Kopieren';span.style.cursor='pointer';span.style.textDecoration='underline';span.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();copyWkn(wkn,span)});el.append(span);el.append(document.createTextNode(text.slice(idx+4+wkn.length)));el.dataset.copyReady='1'});
   }
 
+  // WKNs werden vor dem bestehenden Analyse-Handler in handelbare Yahoo-Symbole aufgelöst.
+  // Dadurch bleibt der bestehende Analyseablauf unverändert; nur die Eingabe einer WKN wird repariert.
+  async function resolveWknForSubmit(wkn){
+    const known={
+      '854075':'BRK-A','A0YJQ2':'BRK-B','918422':'NVDA','870747':'MSFT','865985':'AAPL','906866':'AMZN','716460':'SAP','723610':'SIE.DE','840400':'ALV.DE','A11099':'ANET','A1CX3T':'TSLA','A2JG9Z':'AVGO','850628':'JPM','858560':'LLY','938914':'AIR.PA','909800':'TSM','A1J4U4':'ASML','A3CSML':'GE','A0B87V':'CRM','871460':'ORCL','552484':'NFLX'
+    };
+    const k=String(wkn).trim().toUpperCase();if(known[k])return known[k];
+    const body=JSON.stringify([{idType:'ID_WERTPAPIER',idValue:k}]);
+    let data=null;
+    try{const r=await fetch('https://api.openfigi.com/v3/mapping',{method:'POST',headers:{'Content-Type':'application/json'},body});if(r.ok)data=await r.json()}catch(_){ }
+    if(!data){try{data=await getJson('https://corsproxy.io/?url='+encodeURIComponent('https://api.openfigi.com/v3/mapping?body='+encodeURIComponent(body)))}catch(_){ }}
+    const rows=data?.[0]?.data||[];
+    const equities=rows.filter(x=>/equity|common stock|depositary receipt|adr|reit/i.test((x.marketSector||'')+' '+(x.securityType||'')+' '+(x.securityType2||'')));
+    for(const e of equities){const t=String(e.ticker||'').trim();if(!t)continue;const variants=[t];if(e.exchCode==='XETR')variants.push(t+'.DE');if(e.exchCode==='FRA')variants.push(t+'.F');if(e.exchCode==='VIE')variants.push(t+'.VI');if(e.exchCode==='PAR')variants.push(t+'.PA');if(e.exchCode==='AMS')variants.push(t+'.AS');if(e.exchCode==='LSE')variants.push(t+'.L');for(const symbol of variants){try{const p=await fetchJson('https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(symbol)+'?period1='+(Math.floor(Date.now()/1000)-60*60*24*370)+'&period2='+Math.floor(Date.now()/1000)+'&interval=1d');if(p.chart?.result?.[0]?.timestamp?.length)return symbol}catch(_){}}}
+    throw Error('WKN '+k+' konnte keinem handelbaren Aktiensymbol zugeordnet werden.');
+  }
+
+  function installWknSubmitFix(){
+    const form=$('wknForm')||document.querySelector('form');if(!form||form.dataset.wknFix)return;form.dataset.wknFix='1';
+    form.addEventListener('submit',async e=>{
+      if(form.dataset.wknResolved==='1'){form.dataset.wknResolved='';return;}
+      const inputs=['wkn1','wkn2','wkn3'].map(id=>$(id)).filter(Boolean);const wknInputs=inputs.filter(i=>/^[A-Z0-9]{6}$/i.test(i.value.trim())&& !i.dataset.selected);
+      if(!wknInputs.length)return;
+      e.preventDefault();e.stopImmediatePropagation();
+      const button=$('analyzeBtn');if(button)button.disabled=true;
+      try{for(const input of wknInputs){const symbol=await resolveWknForSubmit(input.value);input.value=symbol;input.dataset.selected=symbol;input.dataset.resolvedWkn=input.value.toUpperCase()}form.dataset.wknResolved='1';form.requestSubmit()}catch(err){const box=$('err');if(box){box.textContent=err.message||'WKN konnte nicht aufgelöst werden.';box.style.display='block'}if(button)button.disabled=false}
+    },true);
+  }
+
   document.addEventListener('DOMContentLoaded',()=>{
     addCacheButton();
     loadTop10Scores();
     makeWknCopyable(document);
+    installWknSubmitFix();
     const target=$('individuals');
     const top10=$('top10Grid');
     if(target)new MutationObserver(()=>{openAllDetails();syncAllScores();makeWknCopyable(target)}).observe(target,{childList:true,subtree:true});
     if(top10)new MutationObserver(()=>makeWknCopyable(top10)).observe(top10,{childList:true,subtree:true});
-    setTimeout(()=>{openAllDetails();syncAllScores();makeWknCopyable(document)},300);
+    setTimeout(()=>{openAllDetails();syncAllScores();makeWknCopyable(document);installWknSubmitFix()},300);
     document.addEventListener('click',e=>{
       const tab=e.target.closest('.tab');if(tab)setTimeout(()=>refreshPeriods(Number(tab.dataset.d)),150);
       const w=e.target.closest('.top10-wkn');if(w){e.preventDefault();e.stopPropagation();const m=w.textContent.match(/WKN\s+([A-Z0-9]+)/i);if(m)copyWkn(m[1].toUpperCase(),w)}
