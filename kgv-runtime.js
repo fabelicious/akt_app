@@ -2,178 +2,487 @@
   'use strict';
 
   /*
-   * AKT-Pro – KGV isolierter Funktionstest
+   * AKT-Pro – unabhängige KGV-Funktion
    *
-   * WICHTIG:
-   * Dieses Modul verändert NICHT:
-   * - Scoring
+   * KGV beeinflusst NICHT:
    * - Kursdaten
+   * - AKTScore
    * - Charts
    * - WKN-Auflösung
    * - Handelsplatz
    * - Top 10
    *
-   * Zweck dieses Tests:
-   * Zuerst sicherstellen, dass die KGV-Anzeige
-   * technisch in der Einzelanalyse funktioniert.
+   * Anzeige:
+   * - KGV vorhanden  -> KGV: 27
+   * - KGV nicht vorhanden -> KGV: n/A
    */
 
-  function getTestKgv(symbol) {
-    symbol = String(symbol || '').trim().toUpperCase();
+  const CACHE_TTL = 6 * 60 * 60 * 1000;
+  const cache = new Map();
+  const pending = new Map();
 
-    /*
-     * Sicherer Test mit Amazon.
-     * Wenn AMZN analysiert wird, muss "KGV: 27"
-     * sichtbar werden.
-     *
-     * Dieser Wert ist NUR ein Funktionstest und
-     * noch KEIN echter Live-KGV-Wert.
-     */
-    if (symbol === 'AMZN') {
-      return 27;
+  function fetchJson(url, timeout = 3500) {
+    const controller = new AbortController();
+    const timer = setTimeout(
+      () => controller.abort(),
+      timeout
+    );
+
+    return fetch(url, {
+      cache: 'no-store',
+      signal: controller.signal
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('HTTP ' + response.status);
+        }
+
+        return response.json();
+      })
+      .finally(() => {
+        clearTimeout(timer);
+      });
+  }
+
+  function validKgv(value) {
+    const number = Number(value);
+
+    if (
+      Number.isFinite(number) &&
+      number > 0 &&
+      number < 10000
+    ) {
+      return number;
     }
 
     return null;
   }
 
-  function addKgv(group, value) {
+  /*
+   * Yahoo KGV
+   */
+  async function getYahooKgv(symbol) {
+
+    const quoteUrl =
+      'https://query1.finance.yahoo.com/v7/finance/quote?symbols=' +
+      encodeURIComponent(symbol);
+
+    const summaryUrl =
+      'https://query2.finance.yahoo.com/v10/finance/quoteSummary/' +
+      encodeURIComponent(symbol) +
+      '?modules=summaryDetail,defaultKeyStatistics,financialData';
+
+    const proxies = [
+      function (url) {
+        return (
+          'https://corsproxy.io/?url=' +
+          encodeURIComponent(url)
+        );
+      },
+
+      function (url) {
+        return (
+          'https://api.allorigins.win/raw?url=' +
+          encodeURIComponent(url)
+        );
+      }
+    ];
+
+    /*
+     * 1. Yahoo Quote API
+     */
+    for (const proxy of proxies) {
+
+      try {
+
+        const result =
+          await fetchJson(
+            proxy(quoteUrl),
+            3000
+          );
+
+        const quote =
+          result?.quoteResponse?.result?.[0];
+
+        if (quote) {
+
+          const trailing =
+            validKgv(quote.trailingPE);
+
+          if (trailing !== null) {
+            return trailing;
+          }
+
+          const forward =
+            validKgv(quote.forwardPE);
+
+          if (forward !== null) {
+            return forward;
+          }
+        }
+
+      } catch (_) {
+        /*
+         * nächsten Datenweg versuchen
+         */
+      }
+    }
+
+    /*
+     * 2. Yahoo QuoteSummary API
+     */
+    for (const proxy of proxies) {
+
+      try {
+
+        const result =
+          await fetchJson(
+            proxy(summaryUrl),
+            3000
+          );
+
+        const data =
+          result?.quoteSummary?.result?.[0];
+
+        if (!data) {
+          continue;
+        }
+
+        const values = [
+
+          data?.summaryDetail?.trailingPE?.raw,
+
+          data?.defaultKeyStatistics?.trailingPE?.raw,
+
+          data?.defaultKeyStatistics?.forwardPE?.raw,
+
+          data?.financialData?.forwardPE?.raw
+
+        ];
+
+        for (const value of values) {
+
+          const kgv =
+            validKgv(value);
+
+          if (kgv !== null) {
+            return kgv;
+          }
+        }
+
+      } catch (_) {
+        /*
+         * nächsten Datenweg versuchen
+         */
+      }
+    }
+
+    return null;
+  }
+
+  /*
+   * KGV laden
+   *
+   * Parallel laufende Abfragen für dasselbe
+   * Symbol werden zusammengeführt.
+   */
+  async function getKgv(symbol) {
+
+    const key =
+      String(symbol || '')
+        .trim()
+        .toUpperCase();
+
+    if (!key) {
+      return null;
+    }
+
+    /*
+     * Cache
+     */
+    const cached =
+      cache.get(key);
+
+    if (
+      cached &&
+      Date.now() - cached.timestamp < CACHE_TTL
+    ) {
+      return cached.value;
+    }
+
+    /*
+     * Bereits laufende Abfrage verwenden
+     */
+    if (pending.has(key)) {
+      return pending.get(key);
+    }
+
+    const request =
+      getYahooKgv(key)
+        .catch(() => null)
+        .then(value => {
+
+          cache.set(key, {
+            timestamp: Date.now(),
+            value: value
+          });
+
+          return value;
+
+        })
+        .finally(() => {
+          pending.delete(key);
+        });
+
+    pending.set(key, request);
+
+    return request;
+  }
+
+  function formatKgv(value) {
+
+    return Number(value).toLocaleString(
+      'de-DE',
+      {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      }
+    );
+  }
+
+  /*
+   * KGV in die vorhandene Empfehlungskachel schreiben
+   */
+  function updateKgvDisplay(group, value) {
+
     if (!group) {
       return;
     }
 
-    if (!Number.isFinite(Number(value))) {
-      return;
-    }
-
-    /*
-     * Die vorhandene Kachel "Technische Empfehlung"
-     */
     const target =
-      group.querySelector('.card.wide .score') ||
+      group.querySelector(
+        '.card.wide .score'
+      ) ||
       group.querySelector('.score');
 
     if (!target) {
       return;
     }
 
-    /*
-     * Bereits vorhandene Anzeige entfernen,
-     * damit nichts doppelt erscheint.
-     */
-    const old = group.querySelector('.kgv-value');
+    let element =
+      group.querySelector(
+        '.kgv-value'
+      );
 
-    if (old) {
-      old.remove();
-    }
+    if (!element) {
 
-    const kgv = document.createElement('span');
+      element =
+        document.createElement('span');
 
-    kgv.className = 'kgv-value';
+      element.className =
+        'kgv-value';
 
-    kgv.style.cssText = [
-      'display:inline-block',
-      'margin-left:12px',
-      'font-size:14px',
-      'font-weight:800',
-      'white-space:nowrap'
-    ].join(';');
-
-    kgv.textContent = 'KGV: ' + value;
-
-    target.insertAdjacentElement('afterend', kgv);
-  }
-
-  function scan() {
-
-    const groups =
-      document.querySelectorAll('.stock-group');
-
-    groups.forEach(group => {
+      element.style.cssText =
+        [
+          'display:inline-block',
+          'margin-left:12px',
+          'font-size:14px',
+          'font-weight:800',
+          'white-space:nowrap'
+        ].join(';');
 
       /*
-       * Symbol aus der Einzelanalyse holen.
+       * Neben der technischen Empfehlung
        */
-      const symbolElement =
-        group.querySelector('.summary-main span');
+      target.appendChild(element);
+    }
 
-      if (!symbolElement) {
-        return;
-      }
+    if (
+      value !== null &&
+      Number.isFinite(Number(value))
+    ) {
 
-      const symbol =
-        symbolElement.textContent.trim();
+      element.textContent =
+        'KGV: ' +
+        formatKgv(value);
 
-      if (!symbol) {
-        return;
-      }
+    } else {
 
-      const value =
-        getTestKgv(symbol);
-
-      if (value !== null) {
-        addKgv(group, value);
-      }
-
-    });
+      element.textContent =
+        'KGV: n/A';
+    }
   }
 
+  /*
+   * Einzelanalysen durchsuchen
+   */
+  function scan() {
+
+    try {
+
+      document
+        .querySelectorAll('.stock-group')
+        .forEach(group => {
+
+          const symbolElement =
+            group.querySelector(
+              '.summary-main span'
+            );
+
+          if (!symbolElement) {
+            return;
+          }
+
+          const symbol =
+            symbolElement.textContent.trim();
+
+          if (!symbol) {
+            return;
+          }
+
+          /*
+           * Sofort n/A anzeigen.
+           *
+           * Sobald ein echtes KGV gefunden wird,
+           * wird n/A ersetzt.
+           */
+          updateKgvDisplay(
+            group,
+            null
+          );
+
+          /*
+           * KGV vollständig unabhängig laden.
+           */
+          getKgv(symbol)
+            .then(value => {
+
+              /*
+               * Analyse existiert noch?
+               */
+              if (
+                !document.body.contains(group)
+              ) {
+                return;
+              }
+
+              updateKgvDisplay(
+                group,
+                value
+              );
+
+            })
+            .catch(() => {
+
+              if (
+                document.body.contains(group)
+              ) {
+
+                updateKgvDisplay(
+                  group,
+                  null
+                );
+              }
+
+            });
+
+        });
+
+    } catch (_) {
+      /*
+       * KGV darf niemals die Hauptanalyse stören.
+       */
+    }
+  }
+
+  /*
+   * Initialisierung
+   */
   function init() {
 
-    /*
-     * Einzelanalyse-Container
-     */
     const root =
-      document.getElementById('individuals');
+      document.getElementById(
+        'individuals'
+      );
 
     if (!root) {
       return;
     }
 
-    /*
-     * Nach dem Rendern der Einzelanalyse prüfen.
-     */
-    setTimeout(scan, 500);
+    let timer = null;
+
+    function scheduleScan(delay) {
+
+      clearTimeout(timer);
+
+      timer =
+        setTimeout(
+          scan,
+          delay || 250
+        );
+    }
 
     /*
-     * Wenn app.js eine neue Einzelanalyse rendert,
-     * erneut prüfen.
+     * Neue Einzelanalysen erkennen
      */
     const observer =
-      new MutationObserver(function () {
-        setTimeout(scan, 200);
-      });
+      new MutationObserver(
+        mutations => {
 
-    observer.observe(root, {
-      childList: true,
-      subtree: true
-    });
+          const changed =
+            mutations.some(
+              mutation =>
+                mutation.addedNodes &&
+                mutation.addedNodes.length
+            );
 
-    /*
-     * Bei Zeitraumwechsel erneut prüfen.
-     */
-    document.addEventListener('click', function (event) {
+          if (changed) {
+            scheduleScan(150);
+          }
 
-      if (
-        event.target.closest('.tab') ||
-        event.target.closest('.top10-detail')
-      ) {
-        setTimeout(scan, 500);
+        }
+      );
+
+    observer.observe(
+      root,
+      {
+        childList: true,
+        subtree: true
       }
-
-    });
+    );
 
     /*
-     * Auch nach kurzer Verzögerung nochmals prüfen,
-     * falls die Analyse etwas später rendert.
+     * Initial
      */
-    setTimeout(scan, 1500);
-    setTimeout(scan, 3000);
+    scheduleScan(400);
+
+    /*
+     * Zeitraumwechsel / Top-10-Detailanalyse
+     */
+    document.addEventListener(
+      'click',
+      event => {
+
+        if (
+          event.target.closest(
+            '.tab, .top10-detail'
+          )
+        ) {
+
+          scheduleScan(500);
+        }
+
+      }
+    );
   }
 
   /*
    * Start
    */
-  if (document.readyState === 'loading') {
+  if (
+    document.readyState ===
+    'loading'
+  ) {
 
     document.addEventListener(
       'DOMContentLoaded',
@@ -188,9 +497,10 @@
   }
 
   /*
-   * Optional für Tests in der Browser-Konsole.
+   * Optional für andere Scripts / Debugging
    */
   window.AKTKGV = {
+    get: getKgv,
     scan: scan
   };
 
