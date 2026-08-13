@@ -5,9 +5,8 @@ import time
 import urllib.parse
 import urllib.request
 
-# Breite, internationale Kandidatenbasis. Die Top-10 werden aus allen erfolgreich
-# geladenen Titeln bestimmt; es gibt keine künstliche Begrenzung auf score >= 90,
-# damit die Top-10 wirklich zehn Titel enthält.
+# Internationale Kandidatenbasis. Die Top 10 werden aus allen erfolgreich
+# geladenen Titeln bestimmt; es gibt keine künstliche Score-Schwelle.
 CANDIDATES = [
     ("Microsoft Corporation", "MSFT", "870747"), ("Apple Inc.", "AAPL", "865985"),
     ("Alphabet Inc. Class A", "GOOGL", "A14Y6F"), ("Meta Platforms, Inc.", "META", "A1JWVX"),
@@ -88,16 +87,15 @@ def score(a):
     return max(0, min(100, round(points)))
 
 def fetch(symbol):
-    # Gleiche Historienlänge wie die Browser-Einzelanalyse: dadurch ist auch
-    # die EMA/MACD-Initialisierung identisch und der Score reproduzierbar.
+    # Exakt dieselbe Datenart wie die Browseranalyse: normale Yahoo-Schlusskurse
+    # (c), nicht Adjusted Close. Die Historie ist bewusst identisch mit der
+    # Browser-Berechnung, damit SMA/RSI/MACD/Volatilität denselben Input erhalten.
     url = "https://query1.finance.yahoo.com/v8/finance/chart/" + urllib.parse.quote(symbol, safe="") + "?range=1900d&interval=1d&events=history&includeAdjustedClose=true"
     request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
     with urllib.request.urlopen(request, timeout=12) as response:
         payload = json.load(response)
     result = payload["chart"]["result"][0]
-    quote = result["indicators"]["quote"][0]
-    adj = result["indicators"].get("adjclose", [{}])[0].get("adjclose", [])
-    closes = adj if adj else quote.get("close", [])
+    closes = result["indicators"]["quote"][0].get("close", [])
     return [float(x) for x in closes if x is not None]
 
 items = []
@@ -117,12 +115,11 @@ for name, symbol, wkn in CANDIDATES:
         print(f"skip {symbol}: {exc}")
     time.sleep(0.05)
 
-# Immer die zehn besten erfolgreich geladenen Titel; bei Gleichstand stabil.
 items.sort(key=lambda x: (-int(x["score"]), -(x["rsi"] or -999), x["symbol"]))
 items = items[:10]
 out = {
     "generatedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-    "criteria": "Top 10 nach einheitlichem AKTScore 0-100",
+    "criteria": "Top 10 nach identischem AKTScore 0-100; exakt dieselben Yahoo-Schlusskurse wie Einzelanalyse",
     "items": items,
 }
 with open("top10.json", "w", encoding="utf-8") as handle:
