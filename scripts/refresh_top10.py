@@ -5,6 +5,9 @@ import time
 import urllib.parse
 import urllib.request
 
+# Breite, internationale Kandidatenbasis. Die Top-10 werden aus allen erfolgreich
+# geladenen Titeln bestimmt; es gibt keine künstliche Begrenzung auf score >= 90,
+# damit die Top-10 wirklich zehn Titel enthält.
 CANDIDATES = [
     ("Microsoft Corporation", "MSFT", "870747"), ("Apple Inc.", "AAPL", "865985"),
     ("Alphabet Inc. Class A", "GOOGL", "A14Y6F"), ("Meta Platforms, Inc.", "META", "A1JWVX"),
@@ -26,6 +29,12 @@ CANDIDATES = [
     ("Broadcom Inc.", "AVGO", "A2JG9Z"), ("Amazon.com, Inc.", "AMZN", "906866"),
     ("Arista Networks, Inc.", "ANET", "A11099"), ("GE Aerospace", "GE", "A3CSML"),
     ("JPMorgan Chase & Co.", "JPM", "850628"), ("Eli Lilly and Company", "LLY", "858560"),
+    ("McDonald's Corporation", "MCD", "856958"), ("Costco Wholesale Corporation", "COST", "888351"),
+    ("PepsiCo, Inc.", "PEP", "851995"), ("Intuitive Surgical, Inc.", "ISRG", "888024"),
+    ("Booking Holdings Inc.", "BKNG", "A2JEXP"), ("Uber Technologies, Inc.", "UBER", "A2PHHG"),
+    ("The Home Depot, Inc.", "HD", "866953"), ("Caterpillar Inc.", "CAT", "850598"),
+    ("Honeywell International Inc.", "HON", "870153"), ("Lockheed Martin Corporation", "LMT", "894648"),
+    ("Linde plc", "LIN", "A2DSYC"), ("Thermo Fisher Scientific Inc.", "TMO", "857209"),
 ]
 
 def mean(a): return sum(a) / len(a) if a else None
@@ -36,8 +45,7 @@ def rsi(a, n=14):
     gains = losses = 0.0
     for i in range(len(a) - n, len(a)):
         d = a[i] - a[i - 1]
-        gains += max(d, 0)
-        losses += max(-d, 0)
+        gains += max(d, 0); losses += max(-d, 0)
     gains /= n; losses /= n
     return 100 if losses == 0 else 100 - 100 / (1 + gains / losses)
 
@@ -80,21 +88,24 @@ def score(a):
     return max(0, min(100, round(points)))
 
 def fetch(symbol):
-    url = "https://query1.finance.yahoo.com/v8/finance/chart/" + urllib.parse.quote(symbol, safe="") + "?range=1y&interval=1d&events=history"
+    # Gleiche Historienlänge wie die Browser-Einzelanalyse: dadurch ist auch
+    # die EMA/MACD-Initialisierung identisch und der Score reproduzierbar.
+    url = "https://query1.finance.yahoo.com/v8/finance/chart/" + urllib.parse.quote(symbol, safe="") + "?range=1900d&interval=1d&events=history&includeAdjustedClose=true"
     request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
     with urllib.request.urlopen(request, timeout=12) as response:
         payload = json.load(response)
     result = payload["chart"]["result"][0]
-    closes = result["indicators"]["quote"][0].get("close", [])
+    quote = result["indicators"]["quote"][0]
+    adj = result["indicators"].get("adjclose", [{}])[0].get("adjclose", [])
+    closes = adj if adj else quote.get("close", [])
     return [float(x) for x in closes if x is not None]
 
 items = []
 for name, symbol, wkn in CANDIDATES:
     try:
         closes = fetch(symbol)
-        if len(closes) < 35: continue
-        current = closes[-1]
-        previous = closes[-2] if len(closes) > 1 else current
+        if len(closes) < 200: continue
+        current, previous = closes[-1], closes[-2]
         current_rsi = rsi(closes)
         items.append({
             "name": name, "symbol": symbol, "wkn": wkn,
@@ -106,7 +117,8 @@ for name, symbol, wkn in CANDIDATES:
         print(f"skip {symbol}: {exc}")
     time.sleep(0.05)
 
-items.sort(key=lambda x: (x["score"], x["rsi"] if x["rsi"] is not None else -999), reverse=True)
+# Immer die zehn besten erfolgreich geladenen Titel; bei Gleichstand stabil.
+items.sort(key=lambda x: (-int(x["score"]), -(x["rsi"] or -999), x["symbol"]))
 items = items[:10]
 out = {
     "generatedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
