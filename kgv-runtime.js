@@ -1,0 +1,10 @@
+(function(){
+'use strict';
+const cache=new Map(), nativeFetch=window.fetch.bind(window);
+async function json(url,timeout=3500){const c=new AbortController(),t=setTimeout(()=>c.abort(),timeout);try{const r=await nativeFetch(url,{signal:c.signal,cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(t)}}
+async function getKgv(symbol){const key=String(symbol||'').trim().toUpperCase();if(!key)return null;if(cache.has(key))return cache.get(key);const url='https://query1.finance.yahoo.com/v7/finance/quote?symbols='+encodeURIComponent(key);let q=null;for(const prefix of ['https://corsproxy.io/?url=','https://api.allorigins.win/raw?url=']){try{const j=await json(prefix+encodeURIComponent(url),3000);q=j?.quoteResponse?.result?.[0];if(q)break}catch(_){}}const value=Number.isFinite(Number(q?.trailingPE))?Number(q.trailingPE):Number.isFinite(Number(q?.forwardPE))?Number(q.forwardPE):null;cache.set(key,value);return value}
+function format(v){return Number(v).toLocaleString('de-DE',{minimumFractionDigits:0,maximumFractionDigits:2})}
+async function updateGroup(group){const symbol=group.querySelector('.summary-main span')?.textContent?.trim(),target=group.querySelector('.card.wide .score');if(!symbol||!target)return;let box=group.querySelector('.kgv-value');if(!box){box=document.createElement('span');box.className='kgv-value';box.style.marginLeft='10px';box.style.fontSize='14px';box.style.fontWeight='800';target.appendChild(box)}box.textContent=' · KGV: …';const v=await getKgv(symbol);box.textContent=v==null?' · KGV: n. a.':' · KGV: '+format(v)}
+function scan(){document.querySelectorAll('.stock-group').forEach(updateGroup)}
+document.addEventListener('DOMContentLoaded',()=>{const root=document.getElementById('individuals');if(root){new MutationObserver(()=>setTimeout(scan,40)).observe(root,{childList:true,subtree:true});setTimeout(scan,100)}document.addEventListener('click',e=>{if(e.target.closest('.tab,.top10-detail'))setTimeout(scan,350)})},{once:true});
+})();
