@@ -1,17 +1,17 @@
 name: Refresh Top 10
-
 on:
   schedule:
-    - cron: '15 6 * * 1-5'
+    - cron: '17 */6 * * *'
   workflow_dispatch:
-
+  push:
+    paths:
+      - 'scripts/refresh_top10.py'
+      - '.github/workflows/top10.yml'
 permissions:
   contents: write
-
 concurrency:
   group: top10-refresh
   cancel-in-progress: true
-
 jobs:
   refresh:
     runs-on: ubuntu-latest
