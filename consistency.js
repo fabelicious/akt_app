@@ -1,0 +1,10 @@
+(function(){'use strict';
+const model=()=>window.AKTScoreModel;
+const $=(s,r=document)=>r.querySelector(s);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const monthYear=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?v:d.toLocaleDateString('de-DE',{month:'short',year:'numeric'})};
+function formatDates(){document.querySelectorAll('canvas').forEach(c=>{const ch=window.Chart?.getChart(c);if(!ch?.options?.scales?.x)return;const x=ch.options.scales.x;x.ticks=x.ticks||{};x.ticks.callback=function(value){let raw=value;try{raw=this.getLabelForValue(value)}catch(_){}return monthYear(raw)};ch.update('none')});document.querySelectorAll('.trade-bar span,.trade-bar[title]').forEach(el=>{if(el.textContent&&/\d{1,2}\.\d{1,2}\.\d{4}/.test(el.textContent))el.textContent=el.textContent.replace(/\d{1,2}\.\d{1,2}\.\d{4}/g,monthYear)});const d=$('.top10-date');if(d&&d.textContent)d.textContent=d.textContent.replace(/\d{1,2}\.\d{1,2}\.\d{4}/g,monthYear)}
+async function scoreTop10(){const m=model();if(!m?.analyse||typeof chartData!=='function')return;const cards=[...document.querySelectorAll('.top10-item')];await Promise.all(cards.map(async card=>{const symbol=$('.top10-symbol',card)?.textContent?.trim();if(!symbol)return;try{const hit=await chartData(symbol);const z=m.analyse(hit.data||[]);if(!Number.isFinite(z.sc))return;const score=$('.top10-score',card);if(score)score.textContent=z.sc+'/100';const badge=$('.top10-buy',card);if(badge)badge.textContent=m.rec(z.sc);card.dataset.liveScore=String(z.sc)}catch(_){}}));}
+function start(){let timer=0;const run=()=>{clearTimeout(timer);timer=setTimeout(()=>{scoreTop10();formatDates()},80)};const root=$('#individuals')||document.body;new MutationObserver(run).observe(root,{childList:true,subtree:true});run();setTimeout(run,1200);setTimeout(run,3500)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();
