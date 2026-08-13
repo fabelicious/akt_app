@@ -1,23 +1,12 @@
 (function(){
-  'use strict';
-  const $=id=>document.getElementById(id);
-  const esc=v=>String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
-  const chartUrl=s=>`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(s)}?period1=${Math.floor(Date.now()/1000)-60*60*24*1900}&period2=${Math.floor(Date.now()/1000)}&interval=1d&events=history&includeAdjustedClose=true`;
-  async function getJson(url,ms=5000){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);try{const r=await fetch('https://corsproxy.io/?url='+encodeURIComponent(url),{signal:c.signal,cache:'no-store'});if(!r.ok)throw Error();return await r.json()}finally{clearTimeout(t)}}
-  function rows(r){const z=r?.chart?.result?.[0],q=z?.indicators?.quote?.[0]||{},a=z?.indicators?.adjclose?.[0]?.adjclose||[],v=q.volume||[];return(z?.timestamp||[]).map((t,i)=>({d:new Date(t*1000),c:Number.isFinite(a[i])?a[i]:q.close?.[i],v:Number.isFinite(v[i])?v[i]:0})).filter(x=>Number.isFinite(x.c))}
-  async function sync(){
-    if(!window.AKTScoreModel)return;
-    let source;
-    try{source=await fetch('./top10.json?scoreSync='+Date.now(),{cache:'no-store'}).then(r=>r.json())}catch(_){return}
-    const candidates=(source.items||[]).slice(0,20);
-    const scored=[];
-    for(const item of candidates){
-      try{const data=rows(await getJson(chartUrl(item.symbol))),z=AKTScoreModel.analyse(data);if(z.score>=90)scored.push({...item,score:z.score,price:z.last,rsi:z.rsi})}catch(_){}
-    }
-    scored.sort((a,b)=>b.score-a.score);
-    const grid=$('top10Grid');if(!grid)return;
-    if(!scored.length){grid.innerHTML='<div class="top10-empty">Aktuell kein Titel mit mindestens 90/100.</div>';return}
-    grid.innerHTML=scored.slice(0,10).map((x,i)=>`<div class="top10-item"><div><div class="top10-rank">#${i+1}</div><div class="top10-name">${esc(x.name)}</div><div class="top10-symbol">${esc(x.symbol)}</div><div class="top10-wkn" data-copy-wkn="${esc(x.wkn||'')}">WKN ${esc(x.wkn||'—')}</div></div><div><div class="top10-score">${x.score}/100</div><div class="top10-meta"><span>${x.price?Number(x.price).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}):''}</span><span>${x.change==null?'':Number(x.change).toFixed(2)+'%'}</span></div><button class="top10-detail" type="button" data-wkn="${esc(x.wkn||x.symbol)}">＋ Detailanalyse</button></div></div>`).join('');
-  }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(sync,900),{once:true});
+'use strict';
+const COUNTRY_OPTIONS=[['WORLD','🌍 Weltweit'],['US','🇺🇸 USA'],['DE','🇩🇪 Deutschland'],['FR','🇫🇷 Frankreich'],['CH','🇨🇭 Schweiz'],['GB','🇬🇧 Großbritannien'],['NL','🇳🇱 Niederlande'],['IT','🇮🇹 Italien'],['ES','🇪🇸 Spanien'],['SE','🇸🇪 Schweden'],['NO','🇳🇴 Norwegen'],['DK','🇩🇰 Dänemark'],['FI','🇫🇮 Finnland'],['JP','🇯🇵 Japan'],['KR','🇰🇷 Südkorea'],['HK','🇭🇰 Hongkong'],['CN','🇨🇳 China'],['TW','🇹🇼 Taiwan'],['IN','🇮🇳 Indien'],['AU','🇦🇺 Australien'],['CA','🇨🇦 Kanada'],['BR','🇧🇷 Brasilien']];
+const esc=v=>String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
+let data=null,selected='WORLD';
+function countryOf(x){if(x.country)return x.country;const s=String(x.symbol||'').toUpperCase();const m={'.DE':'DE','.F':'DE','.PA':'FR','.SW':'CH','.L':'GB','.AS':'NL','.MI':'IT','.MC':'ES','.ST':'SE','.OL':'NO','.CO':'DK','.T':'JP','.HK':'HK','.TO':'CA','.AX':'AU'};for(const k in m)if(s.endsWith(k))return m[k];return 'US'}
+function addSelector(){const panel=document.getElementById('top10Panel');if(!panel||document.getElementById('top10Country'))return;const summary=panel.querySelector('summary');const select=document.createElement('select');select.id='top10Country';select.setAttribute('aria-label','Land für Top 10 auswählen');select.style.cssText='margin-left:auto;padding:7px 10px;border-radius:8px;border:1px solid #475569;background:#1f2937;color:#fff;font-weight:700;font-size:11px;max-width:220px';COUNTRY_OPTIONS.forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;select.appendChild(o)});select.value=selected;select.addEventListener('click',e=>e.stopPropagation());select.addEventListener('change',()=>{selected=select.value;render()});summary.appendChild(select)}
+function card(x,i){return `<div class="top10-item"><div><div class="top10-rank">#${i+1}</div><div class="top10-name">${esc(x.name)}</div><div class="top10-symbol">${esc(x.symbol)}</div><div class="top10-wkn">WKN ${esc(x.wkn||'—')}</div></div><div><div class="top10-score">${Math.round(Number(x.score)||0)}/100</div><div class="top10-meta"><span>${x.price?Number(x.price).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}):''}</span><span>${x.change==null?'':Number(x.change).toFixed(2)+'%'}</span></div><button class="top10-detail" type="button" data-wkn="${esc(x.wkn||x.symbol)}">＋ Detailanalyse</button></div></div>`}
+function render(){const grid=document.getElementById('top10Grid');if(!grid||!data)return;let items=(data.items||[]).filter(x=>Number(x.score)>=90);if(selected!=='WORLD')items=items.filter(x=>countryOf(x)===selected);items.sort((a,b)=>Number(b.score)-Number(a.score));items=items.slice(0,10);grid.innerHTML=items.length?items.map(card).join(''):`<div class="top10-empty">Keine Titel mit mindestens 90/100 für diese Auswahl.</div>`;const d=document.getElementById('top10Date');if(d)d.textContent=data.generatedAt?'Stand '+new Date(data.generatedAt).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'Aktuell'}
+async function load(){addSelector();try{let r=await fetch('./country-top10.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error();data=await r.json();if(!Array.isArray(data.items)||!data.items.length)throw Error()}catch(_){try{let r=await fetch('./top10.json?ts='+Date.now(),{cache:'no-store'});data=await r.json()}catch(__){return}}render()}
+document.addEventListener('DOMContentLoaded',()=>setTimeout(load,1100),{once:true});
 })();
