@@ -6,6 +6,8 @@ on:
   push:
     paths:
       - 'scripts/refresh_top10.py'
+      - 'scripts/refresh_country_top10.py'
+      - 'country-top10.js'
       - '.github/workflows/top10.yml'
 permissions:
   contents: write
@@ -22,9 +24,9 @@ jobs:
           fetch-depth: 1
       - name: Preserve previous valid Top 10 snapshot
         run: cp top10.json /tmp/top10-prev.json
-      - name: Refresh Top 10 from free Yahoo Finance chart data
+      - name: Refresh global Top 10 from free Yahoo Finance chart data
         run: python scripts/refresh_top10.py
-      - name: Reject incomplete scan caused by transient data failures
+      - name: Reject incomplete global scan caused by transient data failures
         run: |
           python - <<'PY'
           import json
@@ -41,11 +43,13 @@ jobs:
           else:
               print(f'Valid scan: {len(cur)} titles >=90.')
           PY
-      - name: Commit only when changed
+      - name: Build country Top 10 using the identical scoring engine
+        run: python scripts/refresh_country_top10.py
+      - name: Commit Top 10 and country Top 10
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add top10.json
+          git add top10.json country-top10.json
           git diff --cached --quiet && exit 0
-          git commit -m 'chore: refresh global top 10 scores'
+          git commit -m 'chore: refresh global and country top 10 scores'
           git push
