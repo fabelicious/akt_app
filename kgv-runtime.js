@@ -1,295 +1,138 @@
 (function () {
   'use strict';
 
-  /*
-   * AKT-Pro – unabhängige KGV-Funktion
-   *
-   * Wichtig:
-   * - Beeinflusst NICHT Kursdaten
-   * - Beeinflusst NICHT das Scoring
-   * - Beeinflusst NICHT Charts
-   * - Beeinflusst NICHT WKN-Auflösung
-   * - KGV ist rein optional
-   * - Bei Fehler oder fehlendem KGV wird nichts angezeigt
-   */
-
+  /* Optional KGV display only. Never part of price data or scoring. */
   const cache = new Map();
+  const pending = new Map();
   const CACHE_TTL = 6 * 60 * 60 * 1000;
 
-  function safeFetchJson(url, timeout = 3000) {
+  async function fetchJson(url, timeout) {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeout);
-
-    return fetch(url, {
-      cache: 'no-store',
-      signal: controller.signal
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('HTTP ' + response.status);
-        }
-        return response.json();
-      })
-      .finally(() => clearTimeout(timer));
+    const timer = setTimeout(() => controller.abort(), timeout || 3000);
+    try {
+      const response = await fetch(url, { cache: 'no-store', signal: controller.signal });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      return await response.json();
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   async function getKgv(symbol) {
     const key = String(symbol || '').trim().toUpperCase();
-
-    if (!key) {
-      return null;
-    }
+    if (!key) return null;
 
     const cached = cache.get(key);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) return cached.value;
 
-    if (
-      cached &&
-      Date.now() - cached.timestamp < CACHE_TTL
-    ) {
-      return cached.value;
-    }
+    if (pending.has(key)) return pending.get(key);
 
-    const yahooUrl =
-      'https://query1.finance.yahoo.com/v7/finance/quote?symbols=' +
-      encodeURIComponent(key);
+    const request = (async () => {
+      let value = null;
+      const yahooUrl = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols=' + encodeURIComponent(key);
+      let quote = null;
 
-    let quote = null;
-
-    /*
-     * KGV-Abfrage ist vollständig optional.
-     * Jeder Fehler wird abgefangen.
-     */
-    try {
       try {
-        const result = await safeFetchJson(
-          'https://corsproxy.io/?url=' +
-            encodeURIComponent(yahooUrl),
-          3000
-        );
-
-        quote = result?.quoteResponse?.result?.[0] || null;
-      } catch (_) {
         try {
-          const result = await safeFetchJson(
-            'https://api.allorigins.win/raw?url=' +
-              encodeURIComponent(yahooUrl),
-            3000
-          );
-
+          const result = await fetchJson('https://corsproxy.io/?url=' + encodeURIComponent(yahooUrl), 3000);
           quote = result?.quoteResponse?.result?.[0] || null;
         } catch (_) {
-          quote = null;
+          const result = await fetchJson('https://api.allorigins.win/raw?url=' + encodeURIComponent(yahooUrl), 3000);
+          quote = result?.quoteResponse?.result?.[0] || null;
         }
+
+        if (quote) {
+          const trailing = Number(quote.trailingPE);
+          const forward = Number(quote.forwardPE);
+          if (Number.isFinite(trailing) && trailing > 0 && trailing < 10000) value = trailing;
+          else if (Number.isFinite(forward) && forward > 0 && forward < 10000) value = forward;
+        }
+      } catch (_) {
+        value = null;
       }
-    } catch (_) {
-      quote = null;
-    }
 
-    let value = null;
+      cache.set(key, { timestamp: Date.now(), value });
+      pending.delete(key);
+      return value;
+    })();
 
-    if (quote) {
-      const trailing = Number(quote.trailingPE);
-      const forward = Number(quote.forwardPE);
-
-      if (
-        Number.isFinite(trailing) &&
-        trailing > 0 &&
-        trailing < 10000
-      ) {
-        value = trailing;
-      } else if (
-        Number.isFinite(forward) &&
-        forward > 0 &&
-        forward < 10000
-      ) {
-        value = forward;
-      }
-    }
-
-    cache.set(key, {
-      timestamp: Date.now(),
-      value
-    });
-
-    return value;
+    pending.set(key, request);
+    return request;
   }
 
   function formatKgv(value) {
-    return Number(value).toLocaleString('de-DE', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    });
+    return Number(value).toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   }
 
-  function updateGroup(group) {
+  async function updateGroup(group) {
     try {
-      const symbolElement =
-        group.querySelector('.summary-main span');
+      if (!group || !document.body.contains(group)) return;
 
-      const target =
-        group.querySelector('.card.wide .score');
+      const symbolElement = group.querySelector('.summary-main span');
+      const target = group.querySelector('.card.wide .score');
+      if (!symbolElement || !target) return;
 
-      if (!symbolElement || !target) {
-        return;
-      }
+      const symbol = symbolElement.textContent.trim();
+      if (!symbol) return;
 
-      const symbol =
-        symbolElement.textContent.trim();
+      const value = await getKgv(symbol);
+      if (value === null || !Number.isFinite(Number(value)) || Number(value) <= 0) return;
+      if (!document.body.contains(group)) return;
 
-      if (!symbol) {
-        return;
-      }
+      const currentTarget = group.querySelector('.card.wide .score');
+      if (!currentTarget) return;
 
-      /*
-       * Vorhandene KGV-Anzeige entfernen.
-       * Dadurch entstehen bei erneutem Rendern keine Duplikate.
-       */
-      const old =
-        target.querySelector('.kgv-value');
+      const existing = currentTarget.querySelector('.kgv-value');
+      if (existing) existing.remove();
 
-      if (old) {
-        old.remove();
-      }
-
-      /*
-       * KGV komplett unabhängig und asynchron laden.
-       * Die bestehende Analyse läuft davon unabhängig weiter.
-       */
-      getKgv(symbol)
-        .then(value => {
-          if (
-            !value ||
-            !Number.isFinite(Number(value))
-          ) {
-            return;
-          }
-
-          /*
-           * Prüfen, ob die Kachel noch im DOM vorhanden ist.
-           * Dadurch wird nach einem neuen Rendern nichts
-           * in eine alte Analyse geschrieben.
-           */
-          if (!document.body.contains(group)) {
-            return;
-          }
-
-          const currentTarget =
-            group.querySelector('.card.wide .score');
-
-          if (!currentTarget) {
-            return;
-          }
-
-          /*
-           * Keine doppelte Anzeige erzeugen.
-           */
-          const existing =
-            currentTarget.querySelector('.kgv-value');
-
-          if (existing) {
-            existing.remove();
-          }
-
-          const box =
-            document.createElement('span');
-
-          box.className = 'kgv-value';
-
-          box.style.marginLeft = '10px';
-          box.style.fontSize = '14px';
-          box.style.fontWeight = '800';
-          box.style.whiteSpace = 'nowrap';
-
-          box.textContent =
-            ' · KGV: ' + formatKgv(value);
-
-          currentTarget.appendChild(box);
-        })
-        .catch(() => {
-          /*
-           * Absichtlich leer:
-           * Ein KGV-Fehler darf niemals die Analyse beeinflussen.
-           */
-        });
-
-    } catch (_) {
-      /*
-       * Absolute Fehlerisolierung.
-       */
-    }
+      const box = document.createElement('span');
+      box.className = 'kgv-value';
+      box.textContent = ' · KGV: ' + formatKgv(value);
+      box.style.marginLeft = '10px';
+      box.style.fontSize = '14px';
+      box.style.fontWeight = '800';
+      box.style.whiteSpace = 'nowrap';
+      currentTarget.appendChild(box);
+    } catch (_) {}
   }
 
   function scan() {
     try {
-      document
-        .querySelectorAll('.stock-group')
-        .forEach(updateGroup);
-    } catch (_) {
-      /* niemals nach außen werfen */
-    }
+      document.querySelectorAll('.stock-group').forEach(group => {
+        updateGroup(group).catch(() => {});
+      });
+    } catch (_) {}
   }
 
-  function scheduleScan(delay = 150) {
-    setTimeout(() => {
-      try {
-        scan();
-      } catch (_) {}
-    }, delay);
+  function scheduleScan(delay) {
+    setTimeout(scan, delay || 200);
   }
 
-  document.addEventListener(
-    'DOMContentLoaded',
-    function () {
-      const root =
-        document.getElementById('individuals');
+  document.addEventListener('DOMContentLoaded', () => {
+    const root = document.getElementById('individuals');
+    if (!root) return;
 
-      if (!root) {
-        return;
-      }
-
-      /*
-       * Neue Einzelanalysen erkennen.
-       * Der Observer verändert die bestehende Analyse nicht.
-       */
-      const observer =
-        new MutationObserver(() => {
-          scheduleScan(100);
+    /* Observe only direct analysis cards. Changes to .kgv-value are ignored. */
+    const observer = new MutationObserver(mutations => {
+      const relevant = mutations.some(mutation => {
+        if (mutation.type !== 'childList') return false;
+        return Array.from(mutation.addedNodes).some(node => {
+          return node.nodeType === 1 && (
+            node.classList?.contains('stock-group') ||
+            node.querySelector?.('.stock-group')
+          );
         });
-
-      observer.observe(root, {
-        childList: true,
-        subtree: true
       });
+      if (relevant) scheduleScan(120);
+    });
 
-      /*
-       * Initialer Scan.
-       */
-      scheduleScan(300);
+    observer.observe(root, { childList: true });
+    scheduleScan(400);
 
-      /*
-       * Bei Zeitraumwechsel oder Top-10-Detailanalyse
-       * nach dem bestehenden Rendern erneut prüfen.
-       */
-      document.addEventListener('click', event => {
-        if (
-          event.target.closest(
-            '.tab, .top10-detail'
-          )
-        ) {
-          scheduleScan(500);
-        }
-      });
-    },
-    { once: true }
-  );
+    document.addEventListener('click', event => {
+      if (event.target.closest('.tab, .top10-detail')) scheduleScan(500);
+    });
+  }, { once: true });
 
-  /*
-   * Optional auch für andere Dateien verfügbar,
-   * ohne bestehende Logik zu überschreiben.
-   */
-  window.AKTKGV = {
-    get: getKgv,
-    scan: scan
-  };
-
+  window.AKTKGV = { get: getKgv, scan };
 })();
