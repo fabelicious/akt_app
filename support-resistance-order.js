@@ -1,5 +1,6 @@
 (function(){
   'use strict';
+  // UI-only ordering fix: no scoring or analysis logic is changed.
   function moveLevelsBeforeRecommendation(){
     document.querySelectorAll('.stock-group .grid').forEach(function(grid){
       var cards=Array.from(grid.children);
