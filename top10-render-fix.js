@@ -5,10 +5,15 @@ function styles(){
   if($('top10RenderStyles'))return;
   const s=document.createElement('style');s.id='top10RenderStyles';
   s.textContent=`
-    .top10-item{display:block!important;min-height:150px!important;height:150px!important;box-sizing:border-box!important}
-    .top10-item>div{margin-top:8px}
+    .top10-grid{align-items:stretch!important;grid-auto-rows:1fr}
+    .top10-item{display:flex!important;flex-direction:column!important;min-height:190px!important;height:auto!important;box-sizing:border-box!important;padding:12px!important;overflow:hidden!important}
+    .top10-item>div:first-child{margin-top:0!important;min-width:0}
+    .top10-item>div:last-child{margin-top:auto!important;padding-top:8px;min-width:0}
+    .top10-item .top10-name{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .top10-item .top10-buy{width:100%;box-sizing:border-box}
     .top10-analysis-btn,.top10-copy-wkn,.wkn-copy{border:0;border-radius:7px;cursor:pointer;font-weight:800}
-    .top10-analysis-btn{display:block;width:100%;margin-top:9px;padding:8px 9px;background:#166534;color:#dcfce7;font-size:10px}
+    .top10-analysis-btn{display:block;width:100%;margin-top:8px;padding:8px 9px;background:#166534;color:#dcfce7;font-size:10px;line-height:1.2;box-sizing:border-box}
+    .top10-analysis-btn:hover{filter:brightness(1.08)}
     .top10-copy-wkn{padding:3px 6px;margin-left:4px;background:#334155;color:#fff;font-size:10px}
     .wkn-copy{background:transparent;color:#fff;padding:0;text-decoration:underline;font-size:11px}
     .top10-external-detail{display:none;margin:12px 0 0;padding:0;border-radius:16px;background:#fff;color:#172033;overflow:hidden}
@@ -20,7 +25,13 @@ function styles(){
     .top10-external-body .stock-group{margin:0;border-radius:0;border:0;width:100%;background:#fff;color:#172033}
     .top10-detail-loading,.top10-detail-error{padding:16px;font-size:12px}
     .top10-detail-error{color:#fecaca;background:#450a0a}
-    @media(max-width:750px){.top10-item{height:150px!important}.top10-analysis-btn{font-size:10px}.top10-external-head{align-items:flex-start}.top10-external-title{font-size:14px}}
+    @media(max-width:750px){
+      .top10-grid{grid-auto-rows:auto!important}
+      .top10-item{min-height:190px!important;height:auto!important}
+      .top10-analysis-btn{font-size:10px}
+      .top10-external-head{align-items:flex-start}
+      .top10-external-title{font-size:14px}
+    }
   `;
   document.head.appendChild(s)
 }
