@@ -87,15 +87,16 @@ def score(a):
     return max(0, min(100, round(points)))
 
 def fetch(symbol):
-    # Exakt dieselbe Datenart wie die Browseranalyse: normale Yahoo-Schlusskurse
-    # (c), nicht Adjusted Close. Die Historie ist bewusst identisch mit der
-    # Browser-Berechnung, damit SMA/RSI/MACD/Volatilität denselben Input erhalten.
+    # Browser chartData currently uses Yahoo Adjusted Close when available.
+    # Use exactly the same series here so Top 10 and Einzelanalyse are identical.
     url = "https://query1.finance.yahoo.com/v8/finance/chart/" + urllib.parse.quote(symbol, safe="") + "?range=1900d&interval=1d&events=history&includeAdjustedClose=true"
     request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
     with urllib.request.urlopen(request, timeout=12) as response:
         payload = json.load(response)
     result = payload["chart"]["result"][0]
-    closes = result["indicators"]["quote"][0].get("close", [])
+    quote = result["indicators"]["quote"][0].get("close", [])
+    adjusted = (result["indicators"].get("adjclose") or [{}])[0].get("adjclose", [])
+    closes = [adjusted[i] if i < len(adjusted) and adjusted[i] is not None else quote[i] for i in range(len(quote))]
     return [float(x) for x in closes if x is not None]
 
 items = []
@@ -119,7 +120,7 @@ items.sort(key=lambda x: (-int(x["score"]), -(x["rsi"] or -999), x["symbol"]))
 items = items[:10]
 out = {
     "generatedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-    "criteria": "Top 10 nach identischem AKTScore 0-100; exakt dieselben Yahoo-Schlusskurse wie Einzelanalyse",
+    "criteria": "Top 10 nach identischem AKTScore 0-100; dieselbe Yahoo Adjusted-Close-Datenbasis wie Einzelanalyse",
     "items": items,
 }
 with open("top10.json", "w", encoding="utf-8") as handle:
