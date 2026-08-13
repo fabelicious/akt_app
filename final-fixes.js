@@ -4,11 +4,19 @@
   const PERIODS={30:1,90:3,180:6,365:12,1825:60};
   const periodCache=new Map();
   const $=id=>document.getElementById(id);
+  let top10Scores=new Map();
 
   async function getJson(url){
     const r=await fetch(url,{cache:'no-store'});
     if(!r.ok)throw Error('HTTP '+r.status);
     return r.json();
+  }
+
+  async function loadTop10Scores(){
+    try{
+      const j=await getJson('./top10.json');
+      top10Scores=new Map((j.items||[]).map(x=>[String(x.wkn||x.symbol||'').toUpperCase(),Number(x.score)]).filter(x=>Number.isFinite(x[1])));
+    }catch(_){top10Scores=new Map()}
   }
 
   function cutoff(months){
@@ -22,7 +30,6 @@
     const key=String(symbol||'').toUpperCase()+'|'+months;
     if(periodCache.has(key))return periodCache.get(key);
     const end=Math.floor(Date.now()/1000);
-    // Load enough history for 200-day indicators, then display the exact calendar period.
     const start=end-60*60*24*365*8;
     const url='https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(symbol)+'?period1='+start+'&period2='+end+'&interval=1d&events=history&includeAdjustedClose=true';
     let z;
@@ -37,6 +44,26 @@
     return result;
   }
 
+  function applyTop10Score(group){
+    const wkn=(group.textContent.match(/WKN\s+([A-Z0-9]+)/i)||[])[1]?.toUpperCase();
+    const symbol=group.querySelector('.summary-main span')?.textContent?.trim()?.toUpperCase();
+    const score=top10Scores.get(wkn)||top10Scores.get(symbol);
+    if(!Number.isFinite(score))return;
+    const result=group.querySelector('.summary-result');
+    if(result){
+      const rec=score>=90?'KAUFEN':score>=65?'BEOBACHTEN':'NICHT KAUFEN';
+      result.textContent=rec+' · '+score+'/100';
+      result.className='summary-result '+(rec==='KAUFEN'?'buy':rec==='NICHT KAUFEN'?'no':'watch');
+    }
+    const cards=[...group.querySelectorAll('.card')];
+    const card=cards.find(c=>(c.querySelector('.label')?.textContent||'').trim()==='Technische Empfehlung');
+    if(card){
+      const v=card.querySelector('.score');if(v)v.textContent=score>=90?'KAUFEN':score>=65?'BEOBACHTEN':'NICHT KAUFEN';
+      const sub=card.querySelector('.sub');if(sub)sub.textContent='Modellscore '+score+'/100 · Datenqualität aus Top-10-Scan';
+      const meter=card.querySelector('.meter span');if(meter)meter.style.width=score+'%';
+    }
+  }
+
   function updateCharts(groupIndex,data){
     const canvases=[...document.querySelectorAll('.stock-group')][groupIndex]?.querySelectorAll('.stock-charts canvas');
     if(!canvases||!canvases.length)return;
@@ -48,18 +75,12 @@
       const chart=Chart.getChart(canvas);if(!chart)return;
       chart.data.labels=labels;
       if(canvas.id.startsWith('price-')){
-        chart.data.datasets[0].data=a;
-        chart.data.datasets[1].data=sma(20);
-        chart.data.datasets[2].data=sma(50);
-        chart.data.datasets[3].data=sma(200);
+        chart.data.datasets[0].data=a;chart.data.datasets[1].data=sma(20);chart.data.datasets[2].data=sma(50);chart.data.datasets[3].data=sma(200);
       }else if(canvas.id.startsWith('rsi-')){
-        chart.data.datasets[0].data=rsi;
-        chart.data.datasets[1].data=labels.map(()=>70);
-        chart.data.datasets[2].data=labels.map(()=>30);
+        chart.data.datasets[0].data=rsi;chart.data.datasets[1].data=labels.map(()=>70);chart.data.datasets[2].data=labels.map(()=>30);
       }else if(canvas.id.startsWith('macd-')){
         const off=Math.max(0,labels.length-macd.values.length);
-        chart.data.datasets[0].data=Array(off).fill(null).concat(macd.values);
-        chart.data.datasets[1].data=Array(off).fill(null).concat(macd.signalValues);
+        chart.data.datasets[0].data=Array(off).fill(null).concat(macd.values);chart.data.datasets[1].data=Array(off).fill(null).concat(macd.signalValues);
       }
       chart.update('none');
     });
@@ -71,7 +92,7 @@
     await Promise.all(groups.map(async(group,i)=>{
       const symbol=group.querySelector('.summary-main span')?.textContent?.trim();
       if(!symbol)return;
-      try{const p=await loadPeriod(symbol,months);updateCharts(i,p.data)}catch(_){/* keep existing chart on transient failure */}
+      try{const p=await loadPeriod(symbol,months);updateCharts(i,p.data)}catch(_){ }
     }));
   }
 
@@ -80,19 +101,11 @@
     const actions=document.querySelector('.search-actions');
     if(!actions)return;
     const b=document.createElement('button');
-    b.type='button';b.id='clearCacheBtn';b.className='btn';
-    b.textContent='🧹 Cache leeren';
+    b.type='button';b.id='clearCacheBtn';b.className='btn';b.textContent='🧹 Cache leeren';
     b.style.marginRight='8px';b.style.background='#64748b';b.style.color='#fff';
     b.addEventListener('click',async()=>{
       b.disabled=true;b.textContent='🧹 wird geleert …';
-      try{
-        try{localStorage.clear()}catch(_){ }
-        try{sessionStorage.clear()}catch(_){ }
-        try{document.cookie.split(';').forEach(c=>{const n=c.split('=')[0].trim();if(n)document.cookie=n+'=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/'});}catch(_){ }
-        try{if(window.caches){const keys=await caches.keys();await Promise.all(keys.map(k=>caches.delete(k)))}}catch(_){ }
-      }finally{
-        location.replace(location.pathname+'?cacheReset='+Date.now());
-      }
+      try{try{localStorage.clear()}catch(_){ }try{sessionStorage.clear()}catch(_){ }try{document.cookie.split(';').forEach(c=>{const n=c.split('=')[0].trim();if(n)document.cookie=n+'=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/'});}catch(_){ }try{if(window.caches){const keys=await caches.keys();await Promise.all(keys.map(k=>caches.delete(k)))}}catch(_){ }}finally{location.replace(location.pathname+'?cacheReset='+Date.now())}
     });
     actions.insertBefore(b,actions.firstChild);
   }
@@ -104,9 +117,10 @@
 
   document.addEventListener('DOMContentLoaded',()=>{
     addCacheButton();
+    loadTop10Scores();
     const target=$('individuals');
     if(target){
-      new MutationObserver(()=>openAllDetails()).observe(target,{childList:true,subtree:true});
+      new MutationObserver(()=>{openAllDetails();[...target.querySelectorAll('.stock-group')].forEach(applyTop10Score)}).observe(target,{childList:true,subtree:true});
       setTimeout(openAllDetails,250);
     }
     document.addEventListener('click',e=>{
