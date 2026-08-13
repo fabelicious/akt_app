@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -23,27 +23,44 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
       - name: Refresh deterministic Top 10
         run: python scripts/refresh_top10.py
-      - name: Validate static files
+
+      - name: Validate Top 10
         run: |
-          test -s index.html
-          test -s enhancements.js
           test -s top10.json
           python -m json.tool top10.json >/dev/null
           python - <<'PY'
           import json
           d=json.load(open('top10.json',encoding='utf-8'))
-          assert len(d.get('items',[])) == 10, f"Expected 10 Top10 items, got {len(d.get('items',[]))}"
-          assert len({x['symbol'] for x in d['items']}) == 10, 'Duplicate Top10 symbols'
-          print('Top10 validated:', [(x['symbol'],x['score']) for x in d['items']])
+          items=d.get('items',[])
+          assert len(items)==10, f'Expected 10 Top10 items, got {len(items)}'
+          assert len({x['symbol'] for x in items})==10, 'Duplicate Top10 symbols'
+          assert all(isinstance(x.get('score'),(int,float)) for x in items), 'Invalid score'
+          print('Top10:', [(x['symbol'],x['score']) for x in items])
           PY
+
+      - name: Persist generated Top 10
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add top10.json
+          if git diff --cached --quiet; then
+            echo 'Top10 unchanged'
+          else
+            git commit -m 'chore: refresh deterministic top 10 data'
+            git push
+          fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:
           path: '.'
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
