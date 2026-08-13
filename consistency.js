@@ -1,9 +1,25 @@
 (function(){'use strict';
-const model=()=>window.AKTScoreModel;
-const $=(s,r=document)=>r.querySelector(s);
+const $=s=>document.querySelector(s);
 const monthYear=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?v:d.toLocaleDateString('de-DE',{month:'short',year:'numeric'})};
-function formatDates(){document.querySelectorAll('canvas').forEach(c=>{const ch=window.Chart?.getChart(c);if(!ch?.options?.scales?.x)return;const x=ch.options.scales.x;x.ticks=x.ticks||{};x.ticks.callback=function(value){let raw=value;try{raw=this.getLabelForValue(value)}catch(_){}return monthYear(raw)};ch.update('none')});const d=$('.top10-date');if(d?.textContent)d.textContent=d.textContent.replace(/\d{1,2}\.\d{1,2}\.\d{4}/g,monthYear)}
-async function scoreTop10(){const m=model();if(!m?.analyse||typeof chartData!=='function')return;const grid=$('.top10-grid');const cards=[...document.querySelectorAll('.top10-item')];await Promise.all(cards.map(async card=>{const symbol=$('.top10-symbol',card)?.textContent?.trim();if(!symbol)return;try{const hit=await chartData(symbol);const z=m.analyse(hit.data||[]);if(!Number.isFinite(z.sc))return;const score=$('.top10-score',card);if(score)score.textContent=z.sc+'/100';const badge=$('.top10-buy',card);if(badge)badge.textContent=m.rec(z.sc);card.dataset.liveScore=String(z.sc)}catch(_){}}));if(grid){cards.sort((a,b)=>(Number(b.dataset.liveScore)||-1)-(Number(a.dataset.liveScore)||-1));cards.forEach((card,i)=>{const rank=$('.top10-rank',card);if(rank)rank.textContent='#'+(i+1);grid.appendChild(card)})}}
-function start(){let timer=0;const run=()=>{clearTimeout(timer);timer=setTimeout(()=>{scoreTop10();formatDates()},80)};const root=$('#individuals')||document.body;new MutationObserver(run).observe(root,{childList:true,subtree:true});run();setTimeout(run,1200);setTimeout(run,3500)}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+async function loadTop10(){
+  const grid=$('#top10Grid');
+  if(!grid)return;
+  try{
+    const r=await fetch('./top10.json?stable=2026-08-13',{cache:'no-store'});
+    if(!r.ok)throw Error('Top-10-Daten konnten nicht geladen werden (HTTP '+r.status+')');
+    const j=await r.json();
+    const items=(Array.isArray(j.items)?j.items:[])
+      .filter(x=>x&&x.symbol&&Number.isFinite(Number(x.score))&&Number(x.score)>=90)
+      .map((x,i)=>({...x,_sourceRank:i}))
+      .sort((a,b)=>Number(b.score)-Number(a.score)||a._sourceRank-b._sourceRank)
+      .slice(0,10);
+    if(typeof window.renderTop10Enhanced!=='function')return;
+    window.renderTop10Enhanced({generatedAt:j.generatedAt,criteria:j.criteria,items});
+    const d=$('#top10Date');
+    if(d&&j.generatedAt)d.textContent=monthYear(j.generatedAt);
+  }catch(e){console.error('Top10:',e);grid.innerHTML='<div class="top10-error">Top-10-Daten konnten nicht geladen werden.</div>'}
+}
+function formatDates(){document.querySelectorAll('canvas').forEach(c=>{const ch=window.Chart?.getChart(c);if(!ch?.options?.scales?.x)return;const x=ch.options.scales.x;x.ticks=x.ticks||{};x.ticks.callback=function(value){let raw=value;try{raw=this.getLabelForValue(value)}catch(_){}return monthYear(raw)};ch.update('none')})}
+function stabilize(){loadTop10();formatDates();setTimeout(()=>{loadTop10();formatDates()},600)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',stabilize,{once:true});else stabilize();
 })();
