@@ -19,7 +19,9 @@
     if(vol<20){score+=10;reasons.push('Volatilität niedrig.')}else if(vol<30){score+=7;reasons.push('Volatilität moderat.')}else if(vol<45){score+=4;reasons.push('Volatilität erhöht.')}else{score+=1;reasons.push('Volatilität hoch – Risiko erhöht.');}
     if(volumeRatio>=1.15&&last>sma20){score+=10;reasons.push('Handelsvolumen bestätigt den positiven kurzfristigen Trend.')}else if(volumeRatio>=0.9){score+=6;reasons.push('Handelsvolumen unauffällig bis stabil.')}else{score+=2;reasons.push('Handelsvolumen bestätigt den Trend nicht.');}
     const quality=close.length>=756?'hoch':close.length>=504?'gut':'ausreichend';
-    return{score:Math.max(0,Math.min(100,Math.round(score))),close,volume,last,sma20,sma50,sma200,rsi:r,momentum3,momentum12,volatility:vol,volumeRatio,reasons,quality,macd:m};
+    // Display-/Empfehlungsscore pauschal um 20 % anheben, maximal 100.
+    score=Math.min(100,Math.round(score*1.2));
+    return{score,close,volume,last,sma20,sma50,sma200,rsi:r,momentum3,momentum12,volatility:vol,volumeRatio,reasons,quality,macd:m};
   }
   function rec(score){return score>=90?'KAUFEN':score>=65?'BEOBACHTEN':'NICHT KAUFEN'}
   window.AKTScoreModel={mean,sma,ema,rsi,macd,volatility,analyse,rec};
