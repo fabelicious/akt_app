@@ -1,26 +1,32 @@
 (function(){
   'use strict';
-  function ensureDetails(){
+  function openAll(){
     const app=document.getElementById('app');
-    const groups=document.querySelectorAll('#individuals .stock-group');
-    if(!app||!groups.length)return false;
+    const container=document.getElementById('individuals');
+    if(!app||!container)return false;
+    const groups=container.querySelectorAll(':scope > .stock-group');
+    if(!groups.length)return false;
     app.style.display='block';
-    // Bei einer Mehrfachanalyse alle erzeugten Detailanalysen sichtbar öffnen.
-    if(groups.length>1) groups.forEach(g=>{g.open=true});
-    // Bei einer Einzelanalyse bleibt das bisherige Verhalten erhalten: erste Analyse offen.
-    else if(groups.length===1) groups[0].open=true;
+    groups.forEach(g=>{g.open=true});
     return true;
   }
-  function init(){
+  function hook(){
     const form=document.getElementById('form');
-    if(!form)return;
+    if(!form||form.dataset.multiDetailHook)return;
+    form.dataset.multiDetailHook='1';
     form.addEventListener('submit',function(){
-      let tries=0;
+      let n=0;
       const timer=setInterval(function(){
-        if(ensureDetails()||++tries>=30)clearInterval(timer);
+        if(openAll()||++n>80)clearInterval(timer);
       },100);
-    },false);
+    },true);
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
-  else init();
+  function init(){
+    hook();
+    const c=document.getElementById('individuals');
+    if(c){
+      new MutationObserver(function(){openAll()}).observe(c,{childList:true,subtree:true});
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
