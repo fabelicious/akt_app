@@ -11,7 +11,7 @@ function moveLevels(){
   if(!levels.length)return;
   let wrap=charts.querySelector(':scope > .sr-above-price');
   if(!wrap){wrap=document.createElement('div');wrap.className='sr-above-price';wrap.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 6px'}
-  if(wrap.previousElementSibling!==price)price.insertAdjacentElement('afterend',wrap);
+  if(wrap.nextElementSibling!==price)price.insertAdjacentElement('beforebegin',wrap);
   levels.forEach(card=>{if(card.parentNode!==wrap){card.style.margin='0';card.style.padding='7px 8px';const v=card.querySelector('.value');if(v)v.style.fontSize='14px';wrap.appendChild(card)}});
   charts.querySelectorAll(':scope > .sr-between-price').forEach(old=>{if(old!==wrap)old.remove()});
   charts.querySelectorAll(':scope > .sr-above-price').forEach(x=>{if(x!==wrap)x.remove()});
