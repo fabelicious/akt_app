@@ -1,5 +1,6 @@
 (function(){
 'use strict';
+if(window.__AKT_SR_ORDER_LOADED)return;window.__AKT_SR_ORDER_LOADED=true;
 let running=false,timer=0;
 function moveLevels(){
  if(running)return;running=true;
