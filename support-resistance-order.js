@@ -5,8 +5,8 @@ function moveLevels(){
   var charts=group.querySelector('.stock-charts'),price=charts&&charts.querySelector('.chart:not(.small)');if(!charts||!price)return;
   var levels=[...group.querySelectorAll('.grid .card')].filter(function(card){var t=(card.querySelector('.label')?.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();return t.includes('unterstützung')||t.includes('unterstezung')||t.includes('widerstand')});
   if(!levels.length)return;
-  var wrap=charts.querySelector('.sr-between-price');
-  if(!wrap){wrap=document.createElement('div');wrap.className='sr-between-price';wrap.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 6px';price.insertAdjacentElement('afterend',wrap)}
+  var wrap=charts.querySelector('.sr-above-price');
+  if(!wrap){wrap=document.createElement('div');wrap.className='sr-above-price';wrap.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 6px';price.parentNode.insertBefore(wrap,price)}
   levels.forEach(function(card){card.style.margin='0';card.style.padding='7px 8px';var v=card.querySelector('.value');if(v)v.style.fontSize='14px';wrap.appendChild(card)});
  });
 }
