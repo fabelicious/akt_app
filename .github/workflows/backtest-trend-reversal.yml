@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install dependencies
-        run: pip install pandas numpy yfinance
+        run: pip install pandas numpy yfinance scikit-learn
       - name: Run 1000-stock backtest
         env:
           N_STOCKS: '1000'
@@ -29,3 +29,4 @@ jobs:
             trend-reversal-backtest.csv
             trend-reversal-summary.csv
             trend-reversal-backtest.json
+            trend-reversal-calibration.json
