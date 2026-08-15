@@ -1,0 +1,31 @@
+name: Backtest trend reversal prototype
+on:
+  push:
+    paths:
+      - 'backtest-trend-reversal.py'
+      - 'trend-reversal-prototype.js'
+      - '.github/workflows/backtest-trend-reversal.yml'
+  workflow_dispatch:
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install pandas numpy yfinance
+      - name: Run 1000-stock backtest
+        env:
+          N_STOCKS: '1000'
+        run: python backtest-trend-reversal.py
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: trend-reversal-backtest
+          path: |
+            trend-reversal-backtest.csv
+            trend-reversal-summary.csv
+            trend-reversal-backtest.json
