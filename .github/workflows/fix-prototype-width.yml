@@ -1,0 +1,47 @@
+name: Fix prototype width
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-prototype-width.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix-width:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Match prototype width to technical analysis
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('trend-reversal-prototype.js')
+          s = p.read_text(encoding='utf-8')
+          old = '.atr-card{margin-top:10px;border:1px solid #dbe3ec;border-radius:12px;background:linear-gradient(180deg,#fff,#f8fafc);padding:12px;color:#172033;box-sizing:border-box;width:calc(200% + 11px);position:relative;z-index:2}'
+          new = '.atr-card{margin-top:10px;border:1px solid #dbe3ec;border-radius:12px;background:linear-gradient(180deg,#fff,#f8fafc);padding:12px;color:#172033;box-sizing:border-box;width:100%;grid-column:span 2;position:relative;z-index:2}'
+          if old not in s:
+              raise SystemExit('Expected prototype CSS was not found')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+      - name: Keep mobile layout single-column
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('trend-reversal-prototype.js')
+          s = p.read_text(encoding='utf-8')
+          old = '@media(max-width:700px){.atr-card{width:100%}'
+          new = '@media(max-width:700px){.atr-card{width:100%;grid-column:span 1}'
+          if old not in s:
+              raise SystemExit('Expected mobile prototype CSS was not found')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add trend-reversal-prototype.js
+          git diff --cached --quiet && exit 0
+          git commit -m 'Fix prototype width to match technical analysis'
+          git push
