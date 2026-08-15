@@ -23,7 +23,11 @@ def rsi(a, n=14):
 
 def macd(a):
     if len(a) < 35: return 0, 0, 0, 0
-    e12, e26 = ema(a,12), ema(a,26); vals = e12[14:] - e26; sig = ema(vals,9)
+    e12, e26 = ema(a,12), ema(a,26)
+    # Align the two EMA arrays before subtraction. The previous code used
+    # e12[14:] against the full e26 array, causing a 166-vs-180 broadcast error.
+    vals = e12[14:] - e26[:len(e12)-14]
+    sig = ema(vals,9)
     return float(vals[-1]), float(sig[-1]), float(vals[-1]-sig[-1]), float(vals[-2]-sig[-2])
 
 def score(df):
