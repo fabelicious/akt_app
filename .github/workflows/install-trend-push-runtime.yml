@@ -1,0 +1,38 @@
+name: Install trend push runtime
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Add push runtime script when missing
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          tag='<script src="./trend-push-runtime.js?v=1"></script>'
+          if tag not in s:
+              marker='<script src="./watchlist-trend-alerts.js?v=1"></script>'
+              if marker not in s:
+                  raise SystemExit('watchlist trend alert script marker not found')
+              s=s.replace(marker, marker+tag, 1)
+              p.write_text(s, encoding='utf-8')
+          PY
+          if git diff --quiet -- index.html; then
+            echo 'Already installed.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Enable background trend push runtime [skip trend alerts]'
+          git push
