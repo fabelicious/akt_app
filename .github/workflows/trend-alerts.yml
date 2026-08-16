@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: '15 8,10,12,14,16,18,20 * * 1-5'
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'trend-alert-state.json'
 
 permissions:
   contents: write
@@ -20,7 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Scan watchlist-compatible universe and publish changed signals
+      - name: Scan trend universe and publish changed signals
         run: python trend-alert-scan.py
 
       - name: Commit updated signal state
