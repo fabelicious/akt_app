@@ -1,0 +1,20 @@
+(function(){'use strict';
+if(window.__AKT_WATCHLIST_TREND_ALERTS__)return;window.__AKT_WATCHLIST_TREND_ALERTS__=1;
+const WL_KEY='aktpro_watchlist_v5',STATE_KEY='aktpro_trend_alert_state_v1',ENABLED_KEY='aktpro_trend_alert_enabled_v1';
+const norm=v=>String(v??'').trim().replace(/^WKN\s*[:#-]?\s*/i,'').replace(/[^A-Z0-9]/gi,'').toUpperCase();
+function watchlist(){try{const x=JSON.parse(localStorage.getItem(WL_KEY)||'[]');return Array.isArray(x)?x.map(v=>({key:norm(v?.key||v?.wkn||v),title:String(v?.title||v?.name||'').trim()})).filter(v=>v.key):[]}catch(_){return[]}}
+function states(){try{return JSON.parse(localStorage.getItem(STATE_KEY)||'{}')||{}}catch(_){return{}}}
+function saveStates(x){try{localStorage.setItem(STATE_KEY,JSON.stringify(x))}catch(_) {}}
+function enabled(){return localStorage.getItem(ENABLED_KEY)==='1'}
+function setEnabled(v){try{localStorage.setItem(ENABLED_KEY,v?'1':'0')}catch(_){} updateButton()}
+async function notify(title,body){if(!enabled()||!('Notification'in window))return;if(Notification.permission==='default')try{await Notification.requestPermission()}catch(_){}if(Notification.permission!=='granted')return;try{new Notification(title,{body,tag:'aktpro-trend-'+title})}catch(_){}
+}
+function status(z){if(!z)return null;if(z.score>=72)return'BESTÄTIGTER KAUF';if(z.score>=58)return'FRÜHES KAUFSIGNAL';if(z.score>=42)return'BODENBILDUNG / ABWARTEN';return'ABWÄRTSTREND / KEIN KAUF'}
+function symbolFor(g){return String(g?._stock?.symbol||g?.querySelector('.summary-main span')?.textContent||'').trim()}
+async function evaluate(g){if(!window.AKTTrendReversal?.analyse||!g?._stock?.data)return;const key=norm(g._stock.wkn||g.dataset.wkn||g.dataset.watchKey);if(!key)return;const wl=watchlist();if(!wl.some(x=>x.key===key))return;const rows=g._stock.data.map(x=>({d:x.d,c:Number(x.c),v:Number(x.v)||0})).filter(x=>Number.isFinite(x.c));if(rows.length<60)return;let z;try{z=window.AKTTrendReversal.analyse(rows)}catch(_){return}const next={score:z.score,status:status(z),symbol:symbolFor(g),at:Date.now()},all=states(),prev=all[key];all[key]=next;saveStates(all);if(!prev)return;const changed=prev.status!==next.status;const crossed=(prev.score<58&&next.score>=58)||(prev.score>=58&&next.score<58)||(prev.score<72&&next.score>=72)||(prev.score>=72&&next.score<72);if(changed||crossed){const title=(wl.find(x=>x.key===key)?.title||key)+' · Trendwende';notify('📈 '+title,prev.status+' → '+next.status+' · Score '+prev.score+' → '+next.score)}}
+function updateButton(){const b=document.getElementById('wlTrendAlertBtn');if(!b)return;b.textContent=enabled()?'🔔 Trendwende-Alarm: EIN':'🔕 Trendwende-Alarm: AUS';b.title=enabled()?'Benachrichtigung bei Änderung des Trendwendesignals aktiv':'Trendwende-Benachrichtigungen aktivieren'}
+function install(){const p=document.getElementById('watchlistPanel');if(!p)return;if(!document.getElementById('wlTrendAlertBtn')){const sync=p.querySelector('.watch-sync');if(!sync)return;const b=document.createElement('button');b.type='button';b.id='wlTrendAlertBtn';b.className='action-btn';b.onclick=async()=>{if('Notification'in window&&Notification.permission==='default')try{await Notification.requestPermission()}catch(_){}setEnabled(!enabled())};sync.insertBefore(b,sync.firstChild)}updateButton()}
+function scan(){document.querySelectorAll('#individuals .stock-group').forEach(evaluate)}
+function boot(){install();scan();const root=document.getElementById('individuals');if(root)new MutationObserver(()=>{install();setTimeout(scan,250)}).observe(root,{childList:true,subtree:true});window.addEventListener('akt:venue-refreshed',e=>evaluate(e.detail?.group));window.addEventListener('storage',e=>{if(e.key===WL_KEY){install();scan()}});setInterval(scan,15*60*1000)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
