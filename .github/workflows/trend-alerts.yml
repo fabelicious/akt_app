@@ -29,7 +29,7 @@ jobs:
 
       - name: Commit updated signal state
         run: |
-          if git diff --quiet -- trend-alert-state.json; then
+          if [ -z "$(git status --porcelain -- trend-alert-state.json)" ]; then
             echo 'No signal-state changes.'
             exit 0
           fi
