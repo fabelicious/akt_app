@@ -11,7 +11,20 @@ function save(){list=normalizeList(list);try{localStorage.setItem(KEY,JSON.strin
 function record(el){if(!el)return null;const s=el._stock||{};let key=norm(s.wkn||el.dataset.wkn||el.dataset.watchKey||el.querySelector('[data-wkn]')?.dataset.wkn||el.querySelector('.top10-wkn')?.textContent||'');let title=clean(el.querySelector('.top10-name')?.textContent||el.querySelector('.summary-main b')?.textContent||s.name||el.dataset.watchTitle||'');if(!key){const m=(el.textContent||'').match(/(?:WKN\s*[:#-]?\s*)?\b([A-Z0-9]{6})\b/i);if(m)key=norm(m[1]);}return key?{key,title:title&&norm(title)!==key?title:''}:null;}
 function toggle(r){if(!r?.key)return;const k=norm(r.key),i=list.findIndex(x=>x.key===k);if(i>=0)list.splice(i,1);else list.push({key:k,title:clean(r.title)});save();}
 function findDetail(k){k=norm(k);return [...document.querySelectorAll('#individuals .stock-group')].find(g=>norm(g._stock?.wkn||g.dataset.wkn||g.dataset.watchKey)===k);}
-function openDetail(k){k=norm(k);const hit=findDetail(k);if(hit){hit.open=true;hit.scrollIntoView({behavior:'smooth',block:'center'});return;}const input=document.getElementById('wkn1');if(!input)return;input.value=k;input.dataset.wkn=k;input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));const form=document.getElementById('form');if(form?.requestSubmit)form.requestSubmit();else form?.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));}
+function openDetail(k){
+ k=norm(k);if(!k)return;
+ const hit=findDetail(k);
+ if(hit){hit.open=true;hit.scrollIntoView({behavior:'smooth',block:'center'});return;}
+ const input=document.getElementById('wkn1'),btn=document.getElementById('analyzeBtn');
+ if(!input||!btn){console.warn('Watchlist: Detailanalyse-Steuerung nicht gefunden.');return;}
+ input.value=k;input.dataset.wkn=k;input.dataset.selected='';
+ input.dispatchEvent(new Event('input',{bubbles:true}));
+ input.dispatchEvent(new Event('change',{bubbles:true}));
+ // Den normalen Analysepfad der Anwendung verwenden. requestSubmit kann durch nachgelagerte
+ // Runtime-Handler oder Browser-Validierung abgefangen werden; der echte Analysebutton ist robuster.
+ setTimeout(()=>{try{btn.click();}catch(_){const form=document.getElementById('form');form?.requestSubmit?.(btn);}},30);
+ setTimeout(()=>{const d=findDetail(k);if(d){d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'});}},250);
+}
 async function copy(v){try{await navigator.clipboard.writeText(v);}catch(_){const t=document.createElement('textarea');t.value=v;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();}}
 function render(){const p=document.getElementById('watchlistPanel');if(!p)return;const body=p.querySelector('.watchlist-items');body.innerHTML=list.length?list.map(x=>'<div class="watch-row"><b>'+esc(x.title||x.key)+'</b><span class="watch-wkn">WKN: '+esc(x.key)+'</span><button type="button" data-a="'+esc(x.key)+'">Analyse</button><button type="button" data-c="'+esc(x.key)+'">WKN kopieren</button><button type="button" data-r="'+esc(x.key)+'">Entfernen</button></div>').join(''):'<div class="watch-empty">Noch keine Titel markiert.</div>';p.querySelector('.watch-count').textContent='('+list.length+')';p.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>openDetail(b.dataset.a));p.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>copy(b.dataset.c));p.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>toggle({key:b.dataset.r}));}
 function addButtons(){document.querySelectorAll('#top10Grid .top10-item,#individuals .stock-group').forEach(el=>{const r=record(el);if(!r)return;el.dataset.watchKey=r.key;el.dataset.watchTitle=r.title||'';let b=el.querySelector('.watch-star');if(!b){b=document.createElement('button');b.type='button';b.className='watch-star';b.title='Watchlist';const target=el.matches('.stock-group')?(el.querySelector('summary')||el):el;target.style.position='relative';target.appendChild(b);}b.textContent=list.some(x=>x.key===r.key)?'★':'☆';b.onclick=e=>{e.preventDefault();e.stopPropagation();toggle(r);b.textContent=list.some(x=>x.key===r.key)?'★':'☆';};});}
