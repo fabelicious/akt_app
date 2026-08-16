@@ -1,0 +1,1307 @@
+{
+  "0001.HK": {
+    "checked_at": 1786901254,
+    "score": 30,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "000270.KS": {
+    "checked_at": 1786901254,
+    "score": 53,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "0005.HK": {
+    "checked_at": 1786901254,
+    "score": 46,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "000660.KS": {
+    "checked_at": 1786901254,
+    "score": 64,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "005380.KS": {
+    "checked_at": 1786901254,
+    "score": 68,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "005490.KS": {
+    "checked_at": 1786901254,
+    "score": 72,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "005930.KS": {
+    "checked_at": 1786901254,
+    "score": 77,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "006400.KS": {
+    "checked_at": 1786901254,
+    "score": 88,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "035420.KS": {
+    "checked_at": 1786901254,
+    "score": 76,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "035720.KS": {
+    "checked_at": 1786901254,
+    "score": 73,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "0388.HK": {
+    "checked_at": 1786901254,
+    "score": 62,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "051910.KS": {
+    "checked_at": 1786901254,
+    "score": 57,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "055550.KS": {
+    "checked_at": 1786901254,
+    "score": 77,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "068270.KS": {
+    "checked_at": 1786901254,
+    "score": 85,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "0700.HK": {
+    "checked_at": 1786901254,
+    "score": 27,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "0883.HK": {
+    "checked_at": 1786901254,
+    "score": 68,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "0941.HK": {
+    "checked_at": 1786901254,
+    "score": 43,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "105560.KS": {
+    "checked_at": 1786901254,
+    "score": 47,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "1299.HK": {
+    "checked_at": 1786901254,
+    "score": 11,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "1398.HK": {
+    "checked_at": 1786901254,
+    "score": 50,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "2303.TW": {
+    "checked_at": 1786901254,
+    "score": 49,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "2308.TW": {
+    "checked_at": 1786901254,
+    "score": 69,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "2317.TW": {
+    "checked_at": 1786901254,
+    "score": 80,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "2318.HK": {
+    "checked_at": 1786901254,
+    "score": 8,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "2330.TW": {
+    "checked_at": 1786901254,
+    "score": 77,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "2382.TW": {
+    "checked_at": 1786901254,
+    "score": 65,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "2454.TW": {
+    "checked_at": 1786901254,
+    "score": 85,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "2881.TW": {
+    "checked_at": 1786901254,
+    "score": 63,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "2882.TW": {
+    "checked_at": 1786901254,
+    "score": 73,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "3690.HK": {
+    "checked_at": 1786901254,
+    "score": 38,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "3711.TW": {
+    "checked_at": 1786901254,
+    "score": 65,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "4063.T": {
+    "checked_at": 1786901254,
+    "score": 57,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "4502.T": {
+    "checked_at": 1786901254,
+    "score": 63,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "600030.SS": {
+    "checked_at": 1786901254,
+    "score": 20,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "600036.SS": {
+    "checked_at": 1786901254,
+    "score": 46,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "600276.SS": {
+    "checked_at": 1786901254,
+    "score": 22,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "600309.SS": {
+    "checked_at": 1786901254,
+    "score": 42,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "600519.SS": {
+    "checked_at": 1786901254,
+    "score": 50,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "600900.SS": {
+    "checked_at": 1786901254,
+    "score": 47,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "601012.SS": {
+    "checked_at": 1786901254,
+    "score": 46,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "601288.SS": {
+    "checked_at": 1786901254,
+    "score": 31,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "601318.SS": {
+    "checked_at": 1786901254,
+    "score": 12,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "601398.SS": {
+    "checked_at": 1786901254,
+    "score": 47,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "6098.T": {
+    "checked_at": 1786901254,
+    "score": 79,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "6367.T": {
+    "checked_at": 1786901254,
+    "score": 29,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "6501.T": {
+    "checked_at": 1786901254,
+    "score": 79,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "6758.T": {
+    "checked_at": 1786901254,
+    "score": 89,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "6861.T": {
+    "checked_at": 1786901254,
+    "score": 88,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "7203.T": {
+    "checked_at": 1786901254,
+    "score": 50,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "7267.T": {
+    "checked_at": 1786901254,
+    "score": 77,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "7974.T": {
+    "checked_at": 1786901254,
+    "score": 70,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "8035.T": {
+    "checked_at": 1786901254,
+    "score": 57,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "8058.T": {
+    "checked_at": 1786901254,
+    "score": 64,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "8306.T": {
+    "checked_at": 1786901254,
+    "score": 63,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "9432.T": {
+    "checked_at": 1786901254,
+    "score": 81,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "9984.T": {
+    "checked_at": 1786901254,
+    "score": 61,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "9988.HK": {
+    "checked_at": 1786901254,
+    "score": 50,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "AAPL": {
+    "checked_at": 1786901254,
+    "score": 29,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "ABBN.SW": {
+    "checked_at": 1786901254,
+    "score": 71,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "ABEV3.SA": {
+    "checked_at": 1786901254,
+    "score": 12,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "ACA.PA": {
+    "checked_at": 1786901254,
+    "score": 75,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "ADS.DE": {
+    "checked_at": 1786901254,
+    "score": 32,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "ADYEN.AS": {
+    "checked_at": 1786901254,
+    "score": 67,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "AENA.MC": {
+    "checked_at": 1786901254,
+    "score": 32,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "AI.PA": {
+    "checked_at": 1786901254,
+    "score": 20,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "AIR.DE": {
+    "checked_at": 1786901254,
+    "score": 75,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "AKRBP.OL": {
+    "checked_at": 1786901254,
+    "score": 77,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "ALV.DE": {
+    "checked_at": 1786901254,
+    "score": 61,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "AMD": {
+    "checked_at": 1786901254,
+    "score": 79,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "AMZN": {
+    "checked_at": 1786901255,
+    "score": 81,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "ANET": {
+    "checked_at": 1786901255,
+    "score": 89,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "ANZ.AX": {
+    "checked_at": 1786901255,
+    "score": 89,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "ASM.AS": {
+    "checked_at": 1786901255,
+    "score": 69,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "ASML.AS": {
+    "checked_at": 1786901255,
+    "score": 81,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "ASSA-B.ST": {
+    "checked_at": 1786901255,
+    "score": 62,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "ATCO-A.ST": {
+    "checked_at": 1786901255,
+    "score": 81,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "AVGO": {
+    "checked_at": 1786901255,
+    "score": 68,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "AZN.L": {
+    "checked_at": 1786901255,
+    "score": 15,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "BA.L": {
+    "checked_at": 1786901255,
+    "score": 75,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "BAJFINANCE.NS": {
+    "checked_at": 1786901255,
+    "score": 66,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "BARC.L": {
+    "checked_at": 1786901255,
+    "score": 67,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "BAS.DE": {
+    "checked_at": 1786901255,
+    "score": 69,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "BATS.L": {
+    "checked_at": 1786901255,
+    "score": 20,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "BBAS3.SA": {
+    "checked_at": 1786901255,
+    "score": 12,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "BBDC4.SA": {
+    "checked_at": 1786901255,
+    "score": 17,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "BEI.DE": {
+    "checked_at": 1786901255,
+    "score": 26,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "BESI.AS": {
+    "checked_at": 1786901255,
+    "score": 72,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "BHARTIARTL.NS": {
+    "checked_at": 1786901255,
+    "score": 75,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "BHP.AX": {
+    "checked_at": 1786901255,
+    "score": 77,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "BMO.TO": {
+    "checked_at": 1786901255,
+    "score": 59,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "BMW.DE": {
+    "checked_at": 1786901255,
+    "score": 45,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "BNP.PA": {
+    "checked_at": 1786901255,
+    "score": 62,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "BNS.TO": {
+    "checked_at": 1786901255,
+    "score": 65,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "BP.L": {
+    "checked_at": 1786901255,
+    "score": 45,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "CAP.PA": {
+    "checked_at": 1786901255,
+    "score": 69,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "CARL-B.CO": {
+    "checked_at": 1786901255,
+    "score": 39,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "CAT": {
+    "checked_at": 1786901255,
+    "score": 65,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "CBA.AX": {
+    "checked_at": 1786901255,
+    "score": 28,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "CFR.SW": {
+    "checked_at": 1786901255,
+    "score": 50,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "CM.TO": {
+    "checked_at": 1786901255,
+    "score": 89,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "CNQ.TO": {
+    "checked_at": 1786901255,
+    "score": 77,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "CNR.TO": {
+    "checked_at": 1786901255,
+    "score": 39,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "COLO-B.CO": {
+    "checked_at": 1786901255,
+    "score": 50,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "COST": {
+    "checked_at": 1786901255,
+    "score": 76,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "CP.TO": {
+    "checked_at": 1786901255,
+    "score": 69,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "CRM": {
+    "checked_at": 1786901255,
+    "score": 69,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "CS.PA": {
+    "checked_at": 1786901255,
+    "score": 51,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "CSL.AX": {
+    "checked_at": 1786901255,
+    "score": 73,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "CVX": {
+    "checked_at": 1786901255,
+    "score": 77,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "DBK.DE": {
+    "checked_at": 1786901255,
+    "score": 81,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "DEMANT.CO": {
+    "checked_at": 1786901255,
+    "score": 79,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "DG.PA": {
+    "checked_at": 1786901255,
+    "score": 39,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "DGE.L": {
+    "checked_at": 1786901255,
+    "score": 81,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "DHL.DE": {
+    "checked_at": 1786901255,
+    "score": 39,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "DNB.OL": {
+    "checked_at": 1786901255,
+    "score": 71,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "DSV.CO": {
+    "checked_at": 1786901255,
+    "score": 52,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "DTE.DE": {
+    "checked_at": 1786901255,
+    "score": 77,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "EL.PA": {
+    "checked_at": 1786901255,
+    "score": 23,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "ELISA.HE": {
+    "checked_at": 1786901255,
+    "score": 56,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "ENB.TO": {
+    "checked_at": 1786901255,
+    "score": 36,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "ENI.MI": {
+    "checked_at": 1786901255,
+    "score": 77,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "ENR.DE": {
+    "checked_at": 1786901255,
+    "score": 92,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "EQNR.OL": {
+    "checked_at": 1786901255,
+    "score": 67,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "EQT.ST": {
+    "checked_at": 1786901255,
+    "score": 71,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "ERIC-B.ST": {
+    "checked_at": 1786901255,
+    "score": 61,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "FMG.AX": {
+    "checked_at": 1786901255,
+    "score": 15,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "FORTUM.HE": {
+    "checked_at": 1786901255,
+    "score": 57,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "G.MI": {
+    "checked_at": 1786901255,
+    "score": 62,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "GIVN.SW": {
+    "checked_at": 1786901255,
+    "score": 32,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "GMAB.CO": {
+    "checked_at": 1786901255,
+    "score": 73,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "GN.CO": {
+    "checked_at": 1786901255,
+    "score": 75,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "GOOGL": {
+    "checked_at": 1786901255,
+    "score": 47,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "GRF.MC": {
+    "checked_at": 1786901255,
+    "score": 30,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "GSK.L": {
+    "checked_at": 1786901255,
+    "score": 15,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "HDFCBANK.NS": {
+    "checked_at": 1786901255,
+    "score": 20,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "HEIA.AS": {
+    "checked_at": 1786901255,
+    "score": 24,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "HEN3.DE": {
+    "checked_at": 1786901255,
+    "score": 54,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "HEXA-B.ST": {
+    "checked_at": 1786901255,
+    "score": 65,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "HINDUNILVR.NS": {
+    "checked_at": 1786901255,
+    "score": 25,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "HM-B.ST": {
+    "checked_at": 1786901255,
+    "score": 62,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "HOLN.SW": {
+    "checked_at": 1786901256,
+    "score": 21,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "HON": {
+    "checked_at": 1786901256,
+    "score": 42,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "HSBA.L": {
+    "checked_at": 1786901256,
+    "score": 51,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "IBE.MC": {
+    "checked_at": 1786901256,
+    "score": 20,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "ICICIBANK.NS": {
+    "checked_at": 1786901256,
+    "score": 38,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "IFX.DE": {
+    "checked_at": 1786901256,
+    "score": 45,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "INFY.NS": {
+    "checked_at": 1786901256,
+    "score": 69,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "INGA.AS": {
+    "checked_at": 1786901256,
+    "score": 71,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "INVE-B.ST": {
+    "checked_at": 1786901256,
+    "score": 62,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "ISP.MI": {
+    "checked_at": 1786901256,
+    "score": 71,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "ISRG": {
+    "checked_at": 1786901256,
+    "score": 80,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "ITC.NS": {
+    "checked_at": 1786901256,
+    "score": 12,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "ITUB4.SA": {
+    "checked_at": 1786901256,
+    "score": 20,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "ITX.MC": {
+    "checked_at": 1786901256,
+    "score": 77,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "JNJ": {
+    "checked_at": 1786901256,
+    "score": 62,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "JPM": {
+    "checked_at": 1786901256,
+    "score": 66,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "KCR.HE": {
+    "checked_at": 1786901256,
+    "score": 77,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "KNEBV.HE": {
+    "checked_at": 1786901256,
+    "score": 61,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "KO": {
+    "checked_at": 1786901256,
+    "score": 63,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "LDO.MI": {
+    "checked_at": 1786901256,
+    "score": 79,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "LLY": {
+    "checked_at": 1786901256,
+    "score": 49,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "LMT": {
+    "checked_at": 1786901256,
+    "score": 89,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "LONN.SW": {
+    "checked_at": 1786901256,
+    "score": 46,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "LSEG.L": {
+    "checked_at": 1786901256,
+    "score": 20,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "LT.NS": {
+    "checked_at": 1786901256,
+    "score": 81,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "MA": {
+    "checked_at": 1786901256,
+    "score": 63,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "MAERSK-B.CO": {
+    "checked_at": 1786901256,
+    "score": 67,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "MARUTI.NS": {
+    "checked_at": 1786901256,
+    "score": 42,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "MB.MI": {
+    "checked_at": 1786901256,
+    "score": 56,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "MBG.DE": {
+    "checked_at": 1786901256,
+    "score": 41,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "MC.PA": {
+    "checked_at": 1786901256,
+    "score": 23,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "MCD": {
+    "checked_at": 1786901256,
+    "score": 51,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "META": {
+    "checked_at": 1786901256,
+    "score": 33,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "MONC.MI": {
+    "checked_at": 1786901256,
+    "score": 33,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "MOWI.OL": {
+    "checked_at": 1786901256,
+    "score": 53,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "MQG.AX": {
+    "checked_at": 1786901256,
+    "score": 62,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "MRK.DE": {
+    "checked_at": 1786901256,
+    "score": 28,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "MSFT": {
+    "checked_at": 1786901256,
+    "score": 71,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "MUV2.DE": {
+    "checked_at": 1786901256,
+    "score": 63,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "NAB.AX": {
+    "checked_at": 1786901256,
+    "score": 62,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "NDA-FI.HE": {
+    "checked_at": 1786901256,
+    "score": 66,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "NESN.SW": {
+    "checked_at": 1786901256,
+    "score": 33,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "NG.L": {
+    "checked_at": 1786901256,
+    "score": 18,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "NHY.OL": {
+    "checked_at": 1786901256,
+    "score": 70,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "NN.AS": {
+    "checked_at": 1786901256,
+    "score": 59,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "NOKIA.HE": {
+    "checked_at": 1786901256,
+    "score": 67,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "NOVN.SW": {
+    "checked_at": 1786901256,
+    "score": 20,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "NOVO-B.CO": {
+    "checked_at": 1786901256,
+    "score": 32,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "NVDA": {
+    "checked_at": 1786901256,
+    "score": 81,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "OR.PA": {
+    "checked_at": 1786901256,
+    "score": 32,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "ORA.PA": {
+    "checked_at": 1786901256,
+    "score": 33,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "ORCL": {
+    "checked_at": 1786901256,
+    "score": 61,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "ORK.OL": {
+    "checked_at": 1786901256,
+    "score": 16,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "ORSTED.CO": {
+    "checked_at": 1786901256,
+    "score": 21,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "PETR4.SA": {
+    "checked_at": 1786901256,
+    "score": 67,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "PG": {
+    "checked_at": 1786901256,
+    "score": 17,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "PHIA.AS": {
+    "checked_at": 1786901256,
+    "score": 72,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "PRIO3.SA": {
+    "checked_at": 1786901256,
+    "score": 84,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "PRX.AS": {
+    "checked_at": 1786901256,
+    "score": 27,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "PRY.MI": {
+    "checked_at": 1786901256,
+    "score": 68,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "QCOM": {
+    "checked_at": 1786901256,
+    "score": 45,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "RACE.MI": {
+    "checked_at": 1786901256,
+    "score": 81,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "REL.L": {
+    "checked_at": 1786901256,
+    "score": 37,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "RELIANCE.NS": {
+    "checked_at": 1786901256,
+    "score": 49,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "REN.AS": {
+    "checked_at": 1786901256,
+    "score": 37,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "RENT3.SA": {
+    "checked_at": 1786901256,
+    "score": 20,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "RHM.DE": {
+    "checked_at": 1786901257,
+    "score": 73,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "RIO.AX": {
+    "checked_at": 1786901257,
+    "score": 70,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "RIO.L": {
+    "checked_at": 1786901257,
+    "score": 62,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "RMS.PA": {
+    "checked_at": 1786901257,
+    "score": 33,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "RY.TO": {
+    "checked_at": 1786901257,
+    "score": 59,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "SALM.OL": {
+    "checked_at": 1786901257,
+    "score": 68,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "SAMPO.HE": {
+    "checked_at": 1786901257,
+    "score": 59,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "SAN.PA": {
+    "checked_at": 1786901257,
+    "score": 33,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "SAND.ST": {
+    "checked_at": 1786901257,
+    "score": 69,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "SAP.DE": {
+    "checked_at": 1786901257,
+    "score": 75,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "SBIN.NS": {
+    "checked_at": 1786901257,
+    "score": 81,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "SCMN.SW": {
+    "checked_at": 1786901257,
+    "score": 69,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "SEB-A.ST": {
+    "checked_at": 1786901257,
+    "score": 66,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "SHEL.L": {
+    "checked_at": 1786901257,
+    "score": 58,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "SHOP.TO": {
+    "checked_at": 1786901257,
+    "score": 88,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "SIE.DE": {
+    "checked_at": 1786901257,
+    "score": 85,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "SIKA.SW": {
+    "checked_at": 1786901257,
+    "score": 81,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "SRG.MI": {
+    "checked_at": 1786901257,
+    "score": 17,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "STLAM.MI": {
+    "checked_at": 1786901257,
+    "score": 15,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "SU.PA": {
+    "checked_at": 1786901257,
+    "score": 85,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "SU.TO": {
+    "checked_at": 1786901257,
+    "score": 59,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "SUBC.OL": {
+    "checked_at": 1786901257,
+    "score": 85,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "SWED-A.ST": {
+    "checked_at": 1786901257,
+    "score": 66,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "TCS.NS": {
+    "checked_at": 1786901257,
+    "score": 38,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "TD.TO": {
+    "checked_at": 1786901257,
+    "score": 77,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "TEL.OL": {
+    "checked_at": 1786901257,
+    "score": 49,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "TEN.MI": {
+    "checked_at": 1786901257,
+    "score": 36,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "TLS.AX": {
+    "checked_at": 1786901257,
+    "score": 15,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "TMO": {
+    "checked_at": 1786901257,
+    "score": 66,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "TRP.TO": {
+    "checked_at": 1786901257,
+    "score": 32,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "TTE.PA": {
+    "checked_at": 1786901257,
+    "score": 58,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "TXN": {
+    "checked_at": 1786901257,
+    "score": 49,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "UBSG.SW": {
+    "checked_at": 1786901257,
+    "score": 58,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "UCG.MI": {
+    "checked_at": 1786901257,
+    "score": 81,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "ULVR.L": {
+    "checked_at": 1786901257,
+    "score": 22,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "UPM.HE": {
+    "checked_at": 1786901257,
+    "score": 20,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "V": {
+    "checked_at": 1786901257,
+    "score": 63,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "VALE3.SA": {
+    "checked_at": 1786901257,
+    "score": 23,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "VALMT.HE": {
+    "checked_at": 1786901257,
+    "score": 78,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "VIE.PA": {
+    "checked_at": 1786901257,
+    "score": 25,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "VNA.DE": {
+    "checked_at": 1786901257,
+    "score": 16,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "VOD.L": {
+    "checked_at": 1786901257,
+    "score": 59,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "VOLV-B.ST": {
+    "checked_at": 1786901257,
+    "score": 42,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "VOW3.DE": {
+    "checked_at": 1786901257,
+    "score": 23,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "VWS.CO": {
+    "checked_at": 1786901257,
+    "score": 89,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "WBC.AX": {
+    "checked_at": 1786901257,
+    "score": 20,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "WDS.AX": {
+    "checked_at": 1786901257,
+    "score": 62,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "WEGE3.SA": {
+    "checked_at": 1786901257,
+    "score": 66,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "WKL.AS": {
+    "checked_at": 1786901257,
+    "score": 46,
+    "status": "BODENBILDUNG / ABWARTEN"
+  },
+  "WMT": {
+    "checked_at": 1786901257,
+    "score": 76,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "WOW.AX": {
+    "checked_at": 1786901257,
+    "score": 63,
+    "status": "FRÜHES KAUFSIGNAL"
+  },
+  "WRT1V.HE": {
+    "checked_at": 1786901257,
+    "score": 32,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "XOM": {
+    "checked_at": 1786901257,
+    "score": 85,
+    "status": "BESTÄTIGTER KAUF"
+  },
+  "YAR.OL": {
+    "checked_at": 1786901257,
+    "score": 24,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  },
+  "ZURN.SW": {
+    "checked_at": 1786901257,
+    "score": 25,
+    "status": "ABWÄRTSTREND / KEIN KAUF"
+  }
+}
