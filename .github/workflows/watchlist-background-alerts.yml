@@ -1,0 +1,23 @@
+name: Deploy Watchlist Background Alerts
+
+on:
+  push:
+    branches: [watchlist-background-alerts-2026-08-17]
+    paths:
+      - 'watchlist-worker/**'
+      - '.github/workflows/watchlist-background-alerts.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Deploy Cloudflare Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: watchlist-worker
+          command: deploy
