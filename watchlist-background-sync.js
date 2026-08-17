@@ -2,7 +2,7 @@
 if(window.__AKT_WATCHLIST_BACKGROUND_SYNC__)return;
 window.__AKT_WATCHLIST_BACKGROUND_SYNC__=1;
 
-const ENDPOINT='https://akt-watchlist-alerts.sp-am-workers.dev';
+const ENDPOINT='https://akt-watchlist-alerts.sp-am.workers.dev';
 const WL='aktpro_watchlist_v5';
 const TOKEN='aktpro_watchlist_alert_token_v1';
 const TOPIC='aktpro_watchlist_ntfy_topic_v1';
@@ -55,12 +55,18 @@ async function post(path,body){
   const url=ENDPOINT+path;
   let r;
   try{
+    /*
+     * text/plain avoids the browser CORS preflight that is triggered
+     * by application/json. The Worker still reads the body with req.json().
+     */
     r=await fetch(url,{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      mode:'cors',
+      headers:{'Content-Type':'text/plain;charset=UTF-8'},
       body:JSON.stringify(body),
       cache:'no-store',
-      credentials:'omit'
+      credentials:'omit',
+      redirect:'follow'
     });
   }catch(e){
     throw Error('Verbindung zum Hintergrunddienst fehlgeschlagen: '+String(e?.message||e));
@@ -138,13 +144,7 @@ function install(){
     test.textContent='Sende …';
 
     try{
-      /*
-       * Vor dem Test immer synchronisieren.
-       * Damit ist garantiert, dass der Worker den aktuellen
-       * Token, das Topic und die Watchlist kennt.
-       */
       await sync();
-
       const result=await post('/test',{token:token()});
 
       if(!result?.ok){
