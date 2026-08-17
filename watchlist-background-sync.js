@@ -7,6 +7,9 @@ const WL='aktpro_watchlist_v5';
 const TOKEN='aktpro_watchlist_alert_token_v1';
 const TOPIC='aktpro_watchlist_ntfy_topic_v1';
 const ENABLED='aktpro_watchlist_background_enabled_v1';
+const LAST_SYNC='aktpro_watchlist_background_last_sync_v1';
+const LAST_TEST='aktpro_watchlist_background_last_test_v1';
+const TEST_COOLDOWN=6*60*60*1000;
 
 const esc=v=>String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
 
@@ -48,17 +51,13 @@ function enabled(){return localStorage.getItem(ENABLED)==='1'}
 
 function setEnabled(v){
   localStorage.setItem(ENABLED,v?'1':'0');
-  return sync();
+  return sync(true);
 }
 
 async function post(path,body){
   const url=ENDPOINT+path;
   let r;
   try{
-    /*
-     * text/plain avoids the browser CORS preflight that is triggered
-     * by application/json. The Worker still reads the body with req.json().
-     */
     r=await fetch(url,{
       method:'POST',
       mode:'cors',
@@ -84,15 +83,27 @@ async function post(path,body){
   return data;
 }
 
-async function sync(){
+async function sync(force){
   try{
+    const items=getList();
+    const fingerprint=JSON.stringify({items,topic:topic(),enabled:enabled()});
+    const previous=localStorage.getItem(LAST_SYNC);
+
+    // Do not hammer the worker. Re-sync only when state changed or explicitly forced.
+    if(!force && previous===fingerprint){
+      setStatus('Hintergrundprüfung: '+(enabled()?'EIN':'AUS')+' · '+items.length+' Titel · Prüfung 1× pro Stunde');
+      return {ok:true,skipped:true,items:items.length};
+    }
+
     const data=await post('/sync',{
       token:token(),
       topic:topic(),
       enabled:enabled(),
-      items:getList()
+      items
     });
-    setStatus('Hintergrundprüfung: '+(enabled()?'EIN':'AUS')+' · '+(data.items??getList().length)+' Titel · Prüfung 1× pro Stunde');
+
+    localStorage.setItem(LAST_SYNC,fingerprint);
+    setStatus('Hintergrundprüfung: '+(enabled()?'EIN':'AUS')+' · '+(data.items??items.length)+' Titel · Prüfung 1× pro Stunde');
     return data;
   }catch(e){
     setStatus('Hintergrunddienst: '+String(e.message||e));
@@ -113,7 +124,7 @@ function install(){
   const box=document.createElement('div');
   box.id='wlBgBox';
   box.className='watch-bg-box';
-  box.innerHTML='<b>🔔 Trendwende-Benachrichtigung</b><span id="wlBgStatus">Wird verbunden …</span><label>ntfy Topic <input id="wlBgTopic" value="'+esc(topic())+'" autocomplete="off"></label><div class="watch-bg-actions"><button type="button" id="wlBgToggle" class="action-btn"></button><button type="button" id="wlBgTest" class="action-btn">Test senden</button><button type="button" id="wlBgOpen" class="action-btn">ntfy öffnen</button></div><small>Die Prüfung läuft serverseitig weiter, auch wenn Browser und Handy geschlossen bzw. gesperrt sind.</small>';
+  box.innerHTML='<b>🔔 Trendwende-Benachrichtigung</b><span id="wlBgStatus">Wird verbunden …</span><label>ntfy Topic <input id="wlBgTopic" value="'+esc(topic())+'" autocomplete="off"></label><div class="watch-bg-actions"><button type="button" id="wlBgToggle" class="action-btn"></button><button type="button" id="wlBgTest" class="action-btn">Test senden</button><button type="button" id="wlBgOpen" class="action-btn">ntfy öffnen</button></div><small>Die Prüfung läuft serverseitig weiter, auch wenn Browser und Handy geschlossen bzw. gesperrt sind. Wiederholte Tests werden zum Schutz des kostenlosen ntfy-Limits begrenzt.</small>';
 
   p.querySelector('.watch-sync')?.insertAdjacentElement('afterend',box);
 
@@ -123,7 +134,8 @@ function install(){
     if(v){
       localStorage.setItem(TOPIC,v);
       inp.value=v;
-      try{await sync()}catch(_){}
+      localStorage.removeItem(LAST_SYNC);
+      try{await sync(true)}catch(_){}
     }
   };
 
@@ -140,17 +152,27 @@ function install(){
 
   box.querySelector('#wlBgTest').onclick=async()=>{
     const test=box.querySelector('#wlBgTest');
+    const last=Number(localStorage.getItem(LAST_TEST)||0);
+    const remaining=TEST_COOLDOWN-(Date.now()-last);
+
+    if(remaining>0){
+      const minutes=Math.ceil(remaining/60000);
+      setStatus('⚠ Test bereits gesendet. Nächster Test in ca. '+minutes+' Min. möglich.');
+      return;
+    }
+
     test.disabled=true;
     test.textContent='Sende …';
 
     try{
-      await sync();
+      // Do not call /sync here: testing must not create unnecessary traffic.
       const result=await post('/test',{token:token()});
 
       if(!result?.ok){
         throw Error(result?.error||'Test wurde vom Hintergrunddienst abgelehnt');
       }
 
+      localStorage.setItem(LAST_TEST,String(Date.now()));
       setStatus('✓ Test erfolgreich an ntfy übergeben · HTTP '+(result.status||200));
     }catch(e){
       const msg=String(e?.message||e);
@@ -164,7 +186,7 @@ function install(){
 
   box.querySelector('#wlBgOpen').onclick=()=>window.open('https://ntfy.sh/'+encodeURIComponent(topic()),'_blank','noopener');
 
-  sync().catch(()=>{});
+  sync(true).catch(()=>{});
 }
 
 const css=document.createElement('style');
@@ -180,11 +202,11 @@ function boot(){
       const now=JSON.stringify(getList());
       if(now!==last){
         last=now;
-        setTimeout(()=>sync().catch(()=>{}),250);
+        localStorage.removeItem(LAST_SYNC);
+        setTimeout(()=>sync(true).catch(()=>{}),250);
       }
     }).observe(p,{childList:true,subtree:true});
   }
-  setInterval(()=>sync().catch(()=>{}),10*60*1000);
 }
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
