@@ -18,10 +18,12 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout main
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
       - name: Refresh global and country Top 10
         run: python scripts/refresh_country_top10.py
       - name: Commit Top 10 data
@@ -31,4 +33,4 @@ jobs:
           git add top10.json country-top10.json
           git diff --cached --quiet && exit 0
           git commit -m 'chore: refresh global and country top 10 scores'
-          git push
+          git push origin HEAD:main
