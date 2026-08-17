@@ -1,0 +1,20 @@
+name: Deploy watchlist background worker
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'watchlist-worker/**'
+      - '.github/workflows/deploy-watchlist-worker.yml'
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: watchlist-worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: deploy
