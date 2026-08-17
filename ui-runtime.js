@@ -2,6 +2,13 @@
 function groups(){const r=document.getElementById('individuals');return r?[...r.querySelectorAll('details.stock-group')]:[]}
 function bind(){if(document.documentElement.dataset.ocBound)return;document.documentElement.dataset.ocBound='1';document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#openAll,#closeAll');if(!b)return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();const open=b.id==='openAll';groups().forEach(g=>g.open=open);requestAnimationFrame(()=>groups().forEach(g=>g.open=open))},true)}
 function venue(){document.querySelectorAll('#individuals .stock-group .venue-select').forEach(s=>{s.hidden=false;s.style.display='block';s.style.visibility='visible';s.style.opacity='1'});document.querySelectorAll('#individuals .stock-group .venue-control').forEach(x=>{x.style.display='block';x.style.visibility='visible';x.style.opacity='1'})}
-function loadV3(){if(document.getElementById('ctv3-loader')||document.getElementById('ctv3Panel'))return;let tries=0;const tick=()=>{if(document.getElementById('ctv3Panel'))return;if(document.getElementById('watchlistPanel')){const s=document.createElement('script');s.id='ctv3-loader';s.src='./country-trend-top10-prototype-v3.js?v=3';s.async=true;document.body.appendChild(s);return}if(++tries<40)setTimeout(tick,250)};tick()}
+function loadV3(){
+  if(document.getElementById('ctv3-loader')||document.getElementById('ctv3Panel'))return;
+  const inject=()=>{if(document.getElementById('ctv3-loader')||document.getElementById('ctv3Panel'))return;const s=document.createElement('script');s.id='ctv3-loader';s.src='./country-trend-top10-prototype-v3.js?v=20260817-2';s.async=false;document.body.appendChild(s)};
+  if(document.getElementById('watchlistPanel')){inject();return;}
+  const mo=new MutationObserver(()=>{if(document.getElementById('watchlistPanel')){mo.disconnect();inject()}});
+  mo.observe(document.body,{childList:true,subtree:true});
+  setTimeout(()=>mo.disconnect(),30000);
+}
 function init(){bind();if(!document.getElementById('ui-runtime-style')){const s=document.createElement('style');s.id='ui-runtime-style';s.textContent='.venue-control{display:block!important;visibility:visible!important;opacity:1!important}.venue-select{display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;min-height:32px!important}.card:has(.venue-select){height:auto!important;min-height:110px!important;overflow:visible!important}@media(max-width:700px){.venue-select{max-width:100%}}';document.head.appendChild(s)}const root=document.getElementById('individuals');if(root){let t;const run=()=>{clearTimeout(t);t=setTimeout(venue,80)};new MutationObserver(run).observe(root,{childList:true,subtree:true});venue()}loadV3()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();})();
