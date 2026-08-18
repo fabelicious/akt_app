@@ -1,39 +1,21 @@
 name: Trendwende Push Alerts
 
+# The actual hourly watchlist scan runs in the Cloudflare Durable Object.
+# This GitHub workflow must not scan the complete global universe because
+# GitHub Actions has no access to each user's private/local watchlist.
+# Keeping the legacy workflow manual prevents duplicate pushes and failures.
 on:
-  schedule:
-    - cron: '15 8,10,12,14,16,18,20 * * 1-5'
   workflow_dispatch:
 
 permissions:
-  contents: write
-
-concurrency:
-  group: trend-alerts
-  cancel-in-progress: false
+  contents: read
 
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
-
-      - name: Scan trend universe and publish changed signals
-        run: python trend-alert-scan.py
-
-      - name: Commit updated signal state
+      - name: Background alert service status
         run: |
-          if [ -z "$(git status --porcelain -- trend-alert-state.json)" ]; then
-            echo 'No signal-state changes.'
-            exit 0
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add trend-alert-state.json
-          git commit -m 'Update trend alert state [skip pages]'
-          git pull --rebase origin main
-          git push origin HEAD:main
+          echo "Trendwende Push Alerts: OK"
+          echo "Hourly watchlist scanning is handled by the Cloudflare background worker."
+          echo "Only titles explicitly synchronized from the user's watchlist are scanned."
