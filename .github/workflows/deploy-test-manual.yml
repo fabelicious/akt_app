@@ -13,26 +13,30 @@ on:
       - '.github/workflows/deploy-test-manual.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - name: Checkout DEVELOPMENT
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 24
+
       - name: Install Wrangler
         run: npm install --global wrangler@latest
+
       - name: Verify TEST bundle
         run: |
-          set -e
+          set -euo pipefail
           test -f index.html
           test -f app.js
           test -f test-worker/worker.js
@@ -40,26 +44,38 @@ jobs:
           grep -q "AKT-Pro by fab" index.html
           grep -q "__proxy" test-worker/worker.js
           grep -q "query1.finance.yahoo.com" test-worker/worker.js
+
       - name: Validate Wrangler config
         working-directory: test-worker
-        run: wrangler check --config wrangler.jsonc
+        run: wrangler deploy --config wrangler.jsonc --dry-run
+
       - name: Deploy isolated TEST Worker
         working-directory: test-worker
         run: wrangler deploy --config wrangler.jsonc
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      - name: Verify TEST runtime and NVDA market data
+
+      - name: Verify TEST runtime
         run: |
-          set -e
+          set -euo pipefail
           URL="https://akt-app-test.sp-am.workers.dev"
           curl -fsSL --retry 5 --connect-timeout 10 --max-time 30 "$URL/__test_status" -D /tmp/headers -o /tmp/status
           grep -qi 'X-AKT-TEST: xetra-v7' /tmp/headers
           grep -q '"status":"ok"' /tmp/status
           curl -fsSI --retry 5 --connect-timeout 10 --max-time 30 "$URL/app.js?v=xetra-v7" | grep -qi 'X-AKT-TEST: xetra-v7'
+
+      - name: Verify NVDA market data through TEST Worker
+        run: |
+          set -euo pipefail
+          URL="https://akt-app-test.sp-am.workers.dev"
           YAHOO="https://query1.finance.yahoo.com/v8/finance/chart/NVDA?range=6mo&interval=1d"
           ENCODED="$(python -c 'import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=""))' "$YAHOO")"
           BODY="$(curl -fsSL --retry 5 --connect-timeout 10 --max-time 30 "$URL/__proxy?url=$ENCODED")"
           printf '%s' "$BODY" | grep -q '"chart"'
-          printf '%s' "$BODY" | grep -q 'NVDA'
+          printf '%s' "$BODY" | grep -q '"symbol":"NVDA"'
+          printf '%s' "$BODY" | grep -q 'timestamp'
           echo "TEST WORKER AND NVDA MARKET DATA PROXY PASSED"
+
+      - name: TEST DEPLOY PASSED
+        run: echo "ALL TEST WORKER DEPLOY AND NVDA SMOKE TESTS PASSED"
