@@ -21,13 +21,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout DEVELOPMENT
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 24
 
@@ -60,10 +60,11 @@ jobs:
         run: |
           set -euo pipefail
           URL="https://akt-app-test.sp-am.workers.dev"
-          curl -fsSL --retry 5 --connect-timeout 10 --max-time 30 "$URL/__test_status" -D /tmp/headers -o /tmp/status
-          grep -qi 'X-AKT-TEST: xetra-v7' /tmp/headers
-          grep -q '"status":"ok"' /tmp/status
-          curl -fsSI --retry 5 --connect-timeout 10 --max-time 30 "$URL/app.js?v=xetra-v7" | grep -qi 'X-AKT-TEST: xetra-v7'
+          curl -fsSL --retry 5 --connect-timeout 10 --max-time 30 "$URL/__test_status" -D /tmp/status_headers -o /tmp/status_body
+          grep -qi 'X-AKT-TEST: xetra-v7' /tmp/status_headers
+          grep -q '"status":"ok"' /tmp/status_body
+          curl -fsSL --retry 5 --connect-timeout 10 --max-time 30 "$URL/app.js?v=xetra-v7" -D /tmp/app_headers -o /dev/null
+          grep -qi 'X-AKT-TEST: xetra-v7' /tmp/app_headers
 
       - name: Verify NVDA market data through TEST Worker
         run: |
