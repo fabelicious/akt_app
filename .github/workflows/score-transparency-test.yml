@@ -53,7 +53,7 @@ jobs:
       - name: Verify score model exists
         run: |
           test -s score-model.js
-          grep -q 'function calc' score-model.js
+          grep -Eq 'function analyse|analyse\s*[:=]' score-model.js
 
       - name: TEST PASSED
         run: echo 'ALL SCORE TRANSPARENCY TESTS PASSED'
