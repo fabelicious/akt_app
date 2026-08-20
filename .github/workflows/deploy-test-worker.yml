@@ -1,0 +1,88 @@
+name: Deploy TEST Worker
+
+on:
+  push:
+    branches: [test]
+    paths:
+      - 'app.js'
+      - 'index.html'
+      - '*.css'
+      - '*.html'
+      - '*.js'
+      - 'test-worker/**'
+      - 'wrangler.jsonc'
+      - '.github/workflows/deploy-test-worker.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout TEST
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Install Wrangler
+        run: npm install --global wrangler@latest
+
+      - name: Validate TEST config
+        working-directory: test-worker
+        run: wrangler check --config wrangler.jsonc
+
+      - name: Verify TEST bundle
+        run: |
+          set -e
+          test -f index.html
+          test -f app.js
+          test -f test-worker/worker.js
+          echo "TEST commit: $(git rev-parse HEAD)"
+          grep -q "AKT-Pro by fab" index.html
+
+      - name: Deploy TEST Worker
+        working-directory: test-worker
+        run: wrangler deploy --config wrangler.jsonc
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Verify public TEST Worker
+        run: |
+          set -e
+          URL="https://akt-app-test.sp-am.workers.dev/"
+          BODY="$(curl -fsSL --retry 3 --connect-timeout 10 --max-time 20 "$URL")"
+          printf '%s' "$BODY" | grep -q "AKT-Pro by fab"
+          if printf '%s' "$BODY" | grep -q "Isolierte TEST-Umgebung"; then
+            echo "ERROR: old TEST placeholder is still public"
+            exit 1
+          fi
+
+          echo "Checking XETRA symbol resolution..."
+          RESOLVE="$(curl -fsSL --retry 3 --connect-timeout 10 --max-time 20 "$URL/api/resolve-xetra?q=NVDA")"
+          printf '%s' "$RESOLVE" | grep -q 'symbol'
+          printf '%s' "$RESOLVE" | grep -Eq 'NVD\.DE|NVDA\.DE'
+
+          echo "Checking chart API..."
+          SYMBOL="$(printf '%s' "$RESOLVE" | sed -n 's/.*"symbol":"\([^"]*\)".*/\1/p')"
+          test -n "$SYMBOL"
+          CHART="$(curl -fsSL --retry 3 --connect-timeout 10 --max-time 25 "$URL/api/yahoo?symbol=$SYMBOL")"
+          printf '%s' "$CHART" | grep -q 'chart'
+          printf '%s' "$CHART" | grep -q 'result'
+
+          echo "Checking search API..."
+          SEARCH="$(curl -fsSL --retry 3 --connect-timeout 10 --max-time 20 "$URL/api/search?q=NVDA")"
+          printf '%s' "$SEARCH" | grep -q 'NVDA'
+
+          echo "Checking TEST runtime header..."
+          APP_HEADERS="$(curl -fsSL --retry 3 --connect-timeout 10 --max-time 20 "$URL/app.js?v=xetra-v7" -D - -o /dev/null)"
+          printf '%s' "$APP_HEADERS" | grep -qi 'X-AKT-TEST: xetra-v7'
+
+          echo "ALL TEST WORKER SMOKE TESTS PASSED"
