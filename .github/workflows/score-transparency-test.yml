@@ -1,0 +1,59 @@
+name: TEST - Score Transparency
+
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'app.js'
+      - 'score-model.js'
+      - 'score-transparency-runtime.js'
+      - 'final-fixes.js'
+      - '.github/workflows/score-transparency-test.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-score-transparency:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout DEVELOPMENT
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate JavaScript syntax
+        run: |
+          node --check app.js
+          node --check score-model.js
+          node --check score-transparency-runtime.js
+          node --check final-fixes.js
+
+      - name: Verify transparency runtime wiring
+        run: |
+          grep -q 'score-transparency-runtime.js' final-fixes.js
+          grep -q 'score-breakdown' score-transparency-runtime.js
+          grep -q 'Prüfsumme' score-transparency-runtime.js
+          grep -q 'Langfristiger Trend' score-transparency-runtime.js
+          grep -q 'Kurz-/Mittelfristiger Trend' score-transparency-runtime.js
+          grep -q 'Momentum' score-transparency-runtime.js
+          grep -q 'MACD' score-transparency-runtime.js
+          grep -q 'RSI' score-transparency-runtime.js
+          grep -q 'Volumen' score-transparency-runtime.js
+          grep -q 'Risiko / Volatilität' score-transparency-runtime.js
+          grep -q 'Kursstruktur' score-transparency-runtime.js
+
+      - name: Verify score model exists
+        run: |
+          test -s score-model.js
+          grep -q 'function calc' score-model.js
+
+      - name: TEST PASSED
+        run: echo 'ALL SCORE TRANSPARENCY TESTS PASSED'
