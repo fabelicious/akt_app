@@ -24,15 +24,12 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 24
-
       - name: Install Wrangler
         run: npm install --global wrangler@latest
-
       - name: Verify TEST bundle
         run: |
           set -e
@@ -41,34 +38,28 @@ jobs:
           test -f test-worker/worker.js
           test -f test-worker/wrangler.jsonc
           grep -q "AKT-Pro by fab" index.html
-          echo "TEST commit: $(git rev-parse HEAD)"
-
+          grep -q "__proxy" test-worker/worker.js
+          grep -q "query1.finance.yahoo.com" test-worker/worker.js
       - name: Validate Wrangler config
         working-directory: test-worker
         run: wrangler check --config wrangler.jsonc
-
       - name: Deploy isolated TEST Worker
         working-directory: test-worker
         run: wrangler deploy --config wrangler.jsonc
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
-      - name: Verify TEST status endpoint
+      - name: Verify TEST runtime and NVDA market data
         run: |
           set -e
-          URL="https://akt-app-test.sp-am.workers.dev/__test_status"
-          curl -fsSL --retry 5 --connect-timeout 10 --max-time 20 "$URL" -D /tmp/headers -o /tmp/body
+          URL="https://akt-app-test.sp-am.workers.dev"
+          curl -fsSL --retry 5 --connect-timeout 10 --max-time 30 "$URL/__test_status" -D /tmp/headers -o /tmp/status
           grep -qi 'X-AKT-TEST: xetra-v7' /tmp/headers
-          grep -q '"environment":"TEST"' /tmp/body
-          grep -q '"runtime":"xetra-v7"' /tmp/body
-          echo "TEST WORKER IS LIVE"
-
-      - name: Verify TEST application
-        run: |
-          set -e
-          URL="https://akt-app-test.sp-am.workers.dev/"
-          curl -fsSL --retry 5 --connect-timeout 10 --max-time 20 "$URL" -D /tmp/app_headers -o /tmp/app_body
-          grep -qi 'X-AKT-TEST: xetra-v7' /tmp/app_headers
-          grep -q 'AKT-Pro by fab' /tmp/app_body
-          echo "TEST APPLICATION IS LIVE"
+          grep -q '"status":"ok"' /tmp/status
+          curl -fsSI --retry 5 --connect-timeout 10 --max-time 30 "$URL/app.js?v=xetra-v7" | grep -qi 'X-AKT-TEST: xetra-v7'
+          YAHOO="https://query1.finance.yahoo.com/v8/finance/chart/NVDA?range=6mo&interval=1d"
+          ENCODED="$(python -c 'import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=""))' "$YAHOO")"
+          BODY="$(curl -fsSL --retry 5 --connect-timeout 10 --max-time 30 "$URL/__proxy?url=$ENCODED")"
+          printf '%s' "$BODY" | grep -q '"chart"'
+          printf '%s' "$BODY" | grep -q 'NVDA'
+          echo "TEST WORKER AND NVDA MARKET DATA PROXY PASSED"
