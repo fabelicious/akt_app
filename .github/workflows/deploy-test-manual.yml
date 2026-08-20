@@ -1,13 +1,17 @@
-name: Deploy AKT App TEST Worker (manual)
+name: Deploy AKT App TEST Worker
 
 on:
+  push:
+    branches: [development]
+    paths:
+      - 'index.html'
+      - 'app.js'
+      - 'score-model.js'
+      - 'score-transparency-runtime.js'
+      - 'final-fixes.js'
+      - 'test-worker/**'
+      - '.github/workflows/deploy-test-manual.yml'
   workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to deploy to the isolated TEST Worker'
-        required: true
-        default: 'test'
-        type: string
 
 jobs:
   deploy:
@@ -15,10 +19,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Checkout TEST branch
+      - name: Checkout DEVELOPMENT
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.branch }}
+          ref: ${{ github.sha }}
           fetch-depth: 1
 
       - name: Setup Node
@@ -35,12 +39,9 @@ jobs:
           test -f index.html
           test -f app.js
           test -f test-worker/worker.js
-          echo "Deploy branch: ${{ inputs.branch }}"
-          echo "TEST commit: $(git rev-parse HEAD)"
-          echo "index.html bytes: $(wc -c < index.html)"
-          echo "app.js bytes: $(wc -c < app.js)"
-          echo "worker.js bytes: $(wc -c < test-worker/worker.js)"
+          test -f test-worker/wrangler.jsonc
           grep -q "AKT-Pro by fab" index.html
+          echo "TEST commit: $(git rev-parse HEAD)"
 
       - name: Validate Wrangler config
         working-directory: test-worker
@@ -53,23 +54,21 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Verify public TEST Worker
+      - name: Verify TEST status endpoint
+        run: |
+          set -e
+          URL="https://akt-app-test.sp-am.workers.dev/__test_status"
+          curl -fsSL --retry 5 --connect-timeout 10 --max-time 20 "$URL" -D /tmp/headers -o /tmp/body
+          grep -qi 'X-AKT-TEST: xetra-v7' /tmp/headers
+          grep -q '"environment":"TEST"' /tmp/body
+          grep -q '"runtime":"xetra-v7"' /tmp/body
+          echo "TEST WORKER IS LIVE"
+
+      - name: Verify TEST application
         run: |
           set -e
           URL="https://akt-app-test.sp-am.workers.dev/"
-          echo "Checking $URL"
-          for i in 1 2 3 4 5 6 7 8 9 10; do
-            BODY="$(curl -fsSL --retry 2 --connect-timeout 10 --max-time 20 "$URL")" || BODY=""
-            if printf '%s' "$BODY" | grep -q "AKT-Pro by fab"; then
-              if printf '%s' "$BODY" | grep -q "Isolierte TEST-Umgebung"; then
-                echo "ERROR: public URL still serves the old TEST placeholder."
-                exit 1
-              fi
-              echo "OK: public TEST URL serves the real application."
-              exit 0
-            fi
-            echo "Attempt $i: public URL not updated yet; waiting 5s..."
-            sleep 5
-          done
-          echo "ERROR: public TEST URL did not serve the expected application."
-          exit 1
+          curl -fsSL --retry 5 --connect-timeout 10 --max-time 20 "$URL" -D /tmp/app_headers -o /tmp/app_body
+          grep -qi 'X-AKT-TEST: xetra-v7' /tmp/app_headers
+          grep -q 'AKT-Pro by fab' /tmp/app_body
+          echo "TEST APPLICATION IS LIVE"
