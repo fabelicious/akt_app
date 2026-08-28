@@ -41,9 +41,9 @@ jobs:
           print('Top10:', [(x['symbol'],x['score']) for x in items])
           PY
       - name: Inject definitive market data fallback
-        run: sed -i 's|<script src="./app.js?v=6"></script>|<script src="./course-network-fix-v3.js?v=4"></script><script src="./app.js?v=6"></script>|' index.html
+        run: sed -i 's|<script src="./app.js?v=6"></script>|<script src="./course-network-fix-v4.js?v=1"></script><script src="./app.js?v=6"></script>|' index.html
       - name: Verify market data fallback
-        run: grep -F 'course-network-fix-v3.js?v=4' index.html && test -s course-network-fix-v3.js && grep -F 'stooq.com' course-network-fix-v3.js
+        run: grep -F 'course-network-fix-v4.js?v=1' index.html && test -s course-network-fix-v4.js && grep -F 'stooq.com' course-network-fix-v4.js
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload site
