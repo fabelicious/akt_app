@@ -44,19 +44,7 @@ jobs:
           PY
 
       - name: Inject course network fallback
-        run: python - <<'PY'
-          from pathlib import Path
-          p=Path('index.html')
-          s=p.read_text(encoding='utf-8')
-          tag='<script src="./course-network-fix.js?v=1"></script>'
-          if tag not in s:
-              marker='<script src="./app.js?v=6"></script>'
-              if marker not in s:
-                  raise SystemExit('app.js script marker not found')
-              s=s.replace(marker,tag+marker,1)
-              p.write_text(s,encoding='utf-8')
-          print('course-network-fix injected')
-          PY
+        run: sed -i 's|<script src="./app.js?v=6"></script>|<script src="./course-network-fix.js?v=1"></script><script src="./app.js?v=6"></script>|' index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
