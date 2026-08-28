@@ -1,0 +1,49 @@
+name: Deploy watchlist background worker · DEVELOPMENT
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [development]
+    paths:
+      - 'watchlist-worker/**'
+      - '.github/workflows/deploy-watchlist-worker-dev.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: watchlist-worker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install Wrangler
+        run: npm install --no-save wrangler@latest
+
+      - name: Validate Wrangler configuration
+        run: npx wrangler check --env dev
+
+      - name: Configure Telegram bot token
+        if: ${{ env.TELEGRAM_BOT_TOKEN != '' }}
+        run: printf '%s' "$TELEGRAM_BOT_TOKEN" | npx wrangler secret put TELEGRAM_BOT_TOKEN --env dev
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Configure Telegram chat ID
+        if: ${{ env.TELEGRAM_CHAT_ID != '' }}
+        run: printf '%s' "$TELEGRAM_CHAT_ID" | npx wrangler secret put TELEGRAM_CHAT_ID --env dev
+        env:
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Deploy DEVELOPMENT Worker
+        run: npx wrangler deploy --env dev
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
