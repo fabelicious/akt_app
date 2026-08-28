@@ -44,7 +44,10 @@ jobs:
           PY
 
       - name: Inject course network fallback
-        run: sed -i 's|<script src="./app.js?v=6"></script>|<script src="./course-network-fix.js?v=1"></script><script src="./app.js?v=6"></script>|' index.html
+        run: sed -i 's|<script src="./app.js?v=6"></script>|<script src="./course-network-fix.js?v=2"></script><script src="./app.js?v=6"></script>|' index.html
+
+      - name: Verify course fallback is injected
+        run: grep -F 'course-network-fix.js?v=2' index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
