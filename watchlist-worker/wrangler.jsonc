@@ -1,6 +1,6 @@
 {
   "$schema": "https://developers.cloudflare.com/workers/wrangler/config-schema.json",
-  "name": "akt-watchlist-alerts",
+  "name": "akt-watchlist-alerts-test",
   "main": "src/index.js",
   "compatibility_date": "2026-08-17",
   "durable_objects": {"bindings": [{"name":"WATCHLIST","class_name":"WatchlistAlarm"}]},
