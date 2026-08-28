@@ -40,10 +40,30 @@ jobs:
           assert all(isinstance(x.get('score'),(int,float)) for x in items)
           print('Top10:', [(x['symbol'],x['score']) for x in items])
           PY
-      - name: Inject definitive market data fallback
-        run: sed -i 's|<script src="./app.js?v=6"></script>|<script src="./course-network-fix-v4.js?v=1"></script><script src="./app.js?v=6"></script>|' index.html
-      - name: Verify market data fallback
-        run: grep -F 'course-network-fix-v4.js?v=1' index.html && test -s course-network-fix-v4.js && grep -F 'stooq.com' course-network-fix-v4.js
+      - name: Validate JavaScript syntax
+        run: |
+          set -e
+          for f in *.js; do node --check "$f"; done
+          for f in watchlist-worker/src/*.js; do node --check "$f"; done
+      - name: Validate WKN map and critical symbols
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('wkn-map.json',encoding='utf-8'))
+          assert '918422' in d.get('items',{}), 'NVDA WKN 918422 missing'
+          assert d['items']['918422'].get('symbol') == 'NVDA', 'NVDA symbol mismatch'
+          assert '870747' in d['items'], 'MSFT WKN missing'
+          assert '865985' in d['items'], 'AAPL WKN missing'
+          print('WKN validation OK')
+          PY
+      - name: Inject final market data and WKN adapter
+        run: sed -i 's|<script src="./app.js?v=6"></script>|<script src="./runtime-final-fix.js?v=1"></script><script src="./app.js?v=6"></script>|' index.html
+      - name: Verify final adapter is published
+        run: |
+          grep -F 'runtime-final-fix.js?v=1' index.html
+          test -s runtime-final-fix.js
+          grep -F 'Kursdaten für ' runtime-final-fix.js
+          grep -F 'WKN' runtime-final-fix.js
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload site
