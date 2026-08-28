@@ -35,15 +35,15 @@ jobs:
           import json
           d=json.load(open('top10.json',encoding='utf-8'))
           items=d.get('items',[])
-          assert 1 <= len(items) <= 10, f'Expected 1-10 Top10 items, got {len(items)}'
-          assert len({x['symbol'] for x in items})==len(items), 'Duplicate Top10 symbols'
-          assert all(isinstance(x.get('score'),(int,float)) for x in items), 'Invalid score'
+          assert 1 <= len(items) <= 10
+          assert len({x['symbol'] for x in items})==len(items)
+          assert all(isinstance(x.get('score'),(int,float)) for x in items)
           print('Top10:', [(x['symbol'],x['score']) for x in items])
           PY
-      - name: Inject course network fallback
-        run: sed -i 's|<script src="./app.js?v=6"></script>|<script src="./course-network-fix-v2.js?v=1"></script><script src="./app.js?v=6"></script>|' index.html
-      - name: Verify course fallback is injected
-        run: grep -F 'course-network-fix-v2.js?v=1' index.html
+      - name: Inject definitive market data fallback
+        run: sed -i 's|<script src="./app.js?v=6"></script>|<script src="./course-network-fix-v3.js?v=3"></script><script src="./app.js?v=6"></script>|' index.html
+      - name: Verify market data fallback
+        run: grep -F 'course-network-fix-v3.js?v=3' index.html && test -s course-network-fix-v3.js
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload site
