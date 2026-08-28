@@ -29,7 +29,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Node.js
+      - name: Setup Node.js 24
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -70,29 +70,41 @@ jobs:
           print('WKN validation OK')
           PY
 
-      - name: Inject market-data and WKN adapters
+      - name: Verify central data architecture
+        run: |
+          set -e
+          test -s market-data-provider.js
+          grep -F '__AKT_MARKET_DATA_PROVIDER__' market-data-provider.js
+          grep -F 'query1.finance.yahoo.com/v8/finance/chart' market-data-provider.js
+          grep -F 'r.jina.ai' market-data-provider.js
+          grep -F 'wkn-resolver.js' index.html
+
+      - name: Publish central adapters before app.js
         run: |
           python - <<'PY'
           from pathlib import Path
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
           marker='<script src="./app.js?v=6"></script>'
-          inject='<script src="./wkn-resolver.js?v=4"></script><script src="./runtime-final-fix-v2.js?v=5"></script>'+marker
           if marker not in s:
               raise SystemExit('app.js script marker not found')
+          # Remove legacy runtime injection if a previous workflow left it behind.
+          import re
+          s=re.sub(r'<script src="\./runtime-final-fix-v2\.js\?v=[^"]+"></script>', '', s)
+          s=re.sub(r'<script src="\./wkn-resolver\.js\?v=[^"]+"></script>', '', s)
+          inject='<script src="./wkn-resolver.js?v=5"></script><script src="./market-data-provider.js?v=1"></script>'+marker
           s=s.replace(marker, inject, 1)
           p.write_text(s,encoding='utf-8')
           PY
 
-      - name: Verify published adapters
+      - name: Validate published entrypoint order
         run: |
           set -e
-          grep -F 'wkn-resolver.js?v=4' index.html
-          grep -F 'runtime-final-fix-v2.js?v=5' index.html
-          test -s wkn-resolver.js
-          test -s runtime-final-fix-v2.js
-          grep -F 'ID_WERTPAPIER' wkn-resolver.js
-          grep -F 'direct Yahoo first' runtime-final-fix-v2.js
+          grep -F 'wkn-resolver.js?v=5' index.html
+          grep -F 'market-data-provider.js?v=1' index.html
+          test "$(grep -n 'wkn-resolver.js?v=5' index.html | cut -d: -f1)" -lt "$(grep -n 'app.js?v=6' index.html | cut -d: -f1)"
+          test "$(grep -n 'market-data-provider.js?v=1' index.html | cut -d: -f1)" -lt "$(grep -n 'app.js?v=6' index.html | cut -d: -f1)"
+          ! grep -q 'runtime-final-fix-v2.js' index.html
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
