@@ -1,0 +1,13 @@
+(function(){
+'use strict';
+if(window.__aktCourseNetworkFixV2)return;
+window.__aktCourseNetworkFixV2=true;
+const nativeFetch=window.fetch.bind(window);
+const Y=/^https:\/\/query1\.finance\.yahoo\.com\//i;
+function target(u){try{const s=String(u),m=s.match(/\?url=(.*)$/i);return m?decodeURIComponent(m[1]):s}catch(_){return String(u)}}
+function abortable(ms){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return{signal:c.signal,clear:()=>clearTimeout(t)}}
+function convert(csv,symbol){const rows=String(csv||'').trim().split(/\r?\n/).filter(Boolean);if(rows.length<2)throw Error('empty');const h=rows.shift().split(',').map(x=>x.trim().toLowerCase()),di=h.indexOf('date'),ci=h.indexOf('close'),vi=h.indexOf('volume');if(di<0||ci<0)throw Error('format');const ts=[],cl=[],vo=[];for(const line of rows){const p=line.split(','),d=p[di],c=Number(p[ci]);if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||!Number.isFinite(c))continue;ts.push(Math.floor(Date.parse(d+'T00:00:00Z')/1000));cl.push(c);vo.push(vi>=0&&Number.isFinite(Number(p[vi]))?Number(p[vi]):0)}if(ts.length<60)throw Error('history');return{chart:{result:[{timestamp:ts,indicators:{quote:[{close:cl,volume:vo}],adjclose:[{adjclose:cl}]},meta:{symbol,shortName:symbol,longName:symbol}}],error:null}}}
+async function stooq(symbol){const s=String(symbol).toLowerCase()+'.us',u='https://stooq.com/q/d/l/?s='+encodeURIComponent(s)+'&i=d';for(const url of [u,'https://corsproxy.io/?url='+encodeURIComponent(u),'https://api.allorigins.win/raw?url='+encodeURIComponent(u)]){const a=abortable(2200);try{const r=await nativeFetch(url,{cache:'no-store',signal:a.signal});if(r.ok){const text=await r.text();if(/^Date,Open,High,Low,Close,Volume/i.test(text.trim())){a.clear();return new Response(JSON.stringify(convert(text,symbol)),{status:200,headers:{'Content-Type':'application/json'}})}}}catch(_){}finally{a.clear()}}return null}
+async function yahoo(input,init){const u=target(input),m=u.match(/\/chart\/([^?]+)/i),symbol=decodeURIComponent(m?.[1]||'');if(symbol){const s=await stooq(symbol);if(s)return s}const base={...init};delete base.signal;for(const url of ['https://corsproxy.io/?url='+encodeURIComponent(u),'https://api.allorigins.win/raw?url='+encodeURIComponent(u),u]){const a=abortable(2200);try{const r=await nativeFetch(url,{...base,signal:a.signal,cache:'no-store'});if(r.ok)return r}catch(_){}finally{a.clear()}}throw Error('Kursdaten für '+symbol+' konnten nicht geladen werden.')}
+window.fetch=function(input,init){const u=typeof input==='string'?input:(input&&input.url)||'';return Y.test(target(u))?yahoo(input,init||{}):nativeFetch(input,init)};
+})();
