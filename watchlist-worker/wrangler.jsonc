@@ -7,6 +7,13 @@
     "bindings": [{"name":"WATCHLIST","class_name":"WatchlistAlarm"}]
   },
   "migrations": [{"tag":"v1","new_sqlite_classes":["WatchlistAlarm"]}],
-  "triggers": {"crons": ["* * * * *"]},
-  "secrets": {"required": ["TELEGRAM_BOT_TOKEN"]}
+  "triggers": {"crons": ["0 * * * *"]},
+  "secrets": {"required": ["TELEGRAM_BOT_TOKEN"]},
+  "env": {
+    "dev": {
+      "name": "akt-watchlist-alerts-dev",
+      "triggers": {"crons": ["* * * * *"]},
+      "secrets": {"required": ["TELEGRAM_BOT_TOKEN"]}
+    }
+  }
 }
