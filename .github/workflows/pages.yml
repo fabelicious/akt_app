@@ -57,15 +57,15 @@ jobs:
           print('WKN validation OK')
           PY
       - name: Inject final market data and WKN adapter
-        run: sed -i 's|<script src="./app.js?v=6"></script>|<script src="./wkn-resolver.js?v=2"></script><script src="./runtime-final-fix-v2.js?v=3"></script><script src="./app.js?v=6"></script>|' index.html
+        run: sed -i 's|<script src="./app.js?v=6"></script>|<script src="./wkn-resolver.js?v=3"></script><script src="./runtime-final-fix-v2.js?v=4"></script><script src="./app.js?v=6"></script>|' index.html
       - name: Verify final adapters are published
         run: |
-          grep -F 'wkn-resolver.js?v=2' index.html
-          grep -F 'runtime-final-fix-v2.js?v=3' index.html
+          grep -F 'wkn-resolver.js?v=3' index.html
+          grep -F 'runtime-final-fix-v2.js?v=4' index.html
           test -s wkn-resolver.js
           test -s runtime-final-fix-v2.js
           grep -F 'ID_WERTPAPIER' wkn-resolver.js
-          grep -F 'r.jina.ai' runtime-final-fix-v2.js
+          grep -F 'direct Yahoo first' runtime-final-fix-v2.js
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload site
