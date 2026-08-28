@@ -33,7 +33,6 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
 
       - name: Refresh deterministic Top 10
         run: python scripts/refresh_top10.py
