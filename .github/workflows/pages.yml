@@ -77,19 +77,17 @@ jobs:
           grep -F '__AKT_MARKET_DATA_PROVIDER__' market-data-provider.js
           grep -F 'query1.finance.yahoo.com/v8/finance/chart' market-data-provider.js
           grep -F 'r.jina.ai' market-data-provider.js
-          grep -F 'wkn-resolver.js' index.html
 
       - name: Publish central adapters before app.js
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
           marker='<script src="./app.js?v=6"></script>'
           if marker not in s:
               raise SystemExit('app.js script marker not found')
-          # Remove legacy runtime injection if a previous workflow left it behind.
-          import re
           s=re.sub(r'<script src="\./runtime-final-fix-v2\.js\?v=[^"]+"></script>', '', s)
           s=re.sub(r'<script src="\./wkn-resolver\.js\?v=[^"]+"></script>', '', s)
           inject='<script src="./wkn-resolver.js?v=5"></script><script src="./market-data-provider.js?v=1"></script>'+marker
