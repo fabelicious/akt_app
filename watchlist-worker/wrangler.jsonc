@@ -2,7 +2,11 @@
   "$schema": "https://developers.cloudflare.com/workers/wrangler/config-schema.json",
   "name": "akt-watchlist-alerts",
   "main": "src/index.js",
-  "compatibility_date": "2026-08-17",
-  "durable_objects": {"bindings": [{"name":"WATCHLIST","class_name":"WatchlistAlarm"}]},
-  "migrations": [{"tag":"v1","new_sqlite_classes":["WatchlistAlarm"]}]
+  "compatibility_date": "2026-08-28",
+  "durable_objects": {
+    "bindings": [{"name":"WATCHLIST","class_name":"WatchlistAlarm"}]
+  },
+  "migrations": [{"tag":"v1","new_sqlite_classes":["WatchlistAlarm"]}],
+  "triggers": {"crons": ["* * * * *"]},
+  "secrets": {"required": ["TELEGRAM_BOT_TOKEN"]}
 }
